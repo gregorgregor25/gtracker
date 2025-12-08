@@ -36,7 +36,8 @@ function fillForm(profile) {
   document.getElementById('sex').value = profile.sex || 'male';
   document.getElementById('height_cm').value = profile.height_cm ?? '';
   document.getElementById('goal_weight').value = profile.goal_weight ?? '';
-  document.getElementById('activity_level').value = profile.activity_level || 'moderate';
+  document.getElementById('activity_level').value =
+    profile.activity_level || 'moderate';
 }
 
 function showBanner(text, danger = false) {
@@ -52,11 +53,14 @@ async function loadLibreLinkConfig() {
     const cfg = await fetchJSON('/api/glucose/config');
     const statusEl = document.getElementById('llu-status');
     if (cfg.ok && cfg.configured) {
-      statusEl.textContent = `Configured for ${cfg.email || 'your account'} (${cfg.region || 'default region'} / ${cfg.tld || 'io'})`;
+      statusEl.textContent = `Configured for ${
+        cfg.email || 'your account'
+      } (${cfg.region || 'default region'} / ${cfg.tld || 'io'})`;
       statusEl.style.background = '#e0f2fe';
       statusEl.style.color = '#075985';
     } else {
-      statusEl.textContent = 'LibreLinkUp not configured yet. Enter your login to enable glucose fetches.';
+      statusEl.textContent =
+        'LibreLinkUp not configured yet. Enter your login to enable glucose fetches.';
       statusEl.style.background = '#fff7ed';
       statusEl.style.color = '#9a3412';
     }
@@ -84,14 +88,17 @@ document.getElementById('llu-form').addEventListener('submit', async (e) => {
       method: 'POST',
       body: JSON.stringify(payload),
     });
-    statusEl.textContent = `Saved. Configured for ${res.email || 'your account'} (${res.region || 'default region'} / ${res.tld || 'io'}).`;
+    statusEl.textContent = `Saved. Configured for ${
+      res.email || 'your account'
+    } (${res.region || 'default region'} / ${res.tld || 'io'}).`;
     statusEl.style.display = 'block';
     statusEl.style.background = '#e0f2fe';
     statusEl.style.color = '#075985';
     showToast('LibreLinkUp credentials saved');
     document.getElementById('llu-password').value = '';
   } catch (err) {
-    statusEl.textContent = 'Could not save LibreLinkUp credentials. Please check your details and try again.';
+    statusEl.textContent =
+      'Could not save LibreLinkUp credentials. Please check your details and try again.';
     statusEl.style.display = 'block';
     statusEl.style.background = '#fee2e2';
     statusEl.style.color = '#991b1b';

@@ -1,4 +1,5 @@
 const CACHE_NAME = 'gtracker-cache-v6';
+
 const ASSETS = [
   '/',
   '/index.html',
@@ -21,26 +22,32 @@ const ASSETS = [
   '/weight.js',
   '/manifest.json',
   '/icons/gtracker-192.svg',
-  '/icons/gtracker-512.svg'
+  '/icons/gtracker-512.svg',
 ];
 
+// INSTALL
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
 });
 
+// ACTIVATE — clean old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+      Promise.all(
+        keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
+      )
     )
   );
 });
 
+// FETCH — cache first, fallback to network
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
+
   event.respondWith(
     caches.match(request).then((cached) => cached || fetch(request))
   );

@@ -6,6 +6,7 @@ const form = document.getElementById('today-form');
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
+
   const data = {
     gym_done: document.getElementById('gym_done').checked,
     treadmill_minutes: document.getElementById('treadmill_minutes').value,
@@ -24,8 +25,10 @@ form.addEventListener('submit', async (e) => {
       method: 'POST',
       body: JSON.stringify(data),
     });
+
     showStatus('Saved! Nice work.');
     showToast('Saved! Nice work.');
+
     if (saved.gym_done && saved.treadmill_minutes >= 120) {
       showToast('Perfect training day!');
       launchConfetti();
@@ -38,19 +41,24 @@ form.addEventListener('submit', async (e) => {
 async function loadForm() {
   try {
     const entry = await fetchJSON('/api/entries/today');
+
     document.getElementById('today-date-badge').textContent = entry.date;
     document.getElementById('gym_done').checked = !!entry.gym_done;
     document.getElementById('treadmill_minutes').value = entry.treadmill_minutes || '';
     document.getElementById('treadmill_distance_km').value = entry.treadmill_distance_km || '';
+
     const fallbackCalories = entry.calories_total ?? entry.calories_burned ?? '';
     document.getElementById('calories_gym').value = entry.calories_gym ?? fallbackCalories;
     document.getElementById('calories_treadmill').value = entry.calories_treadmill ?? '';
+
     updateCaloriesTotal(entry.calories_total ?? entry.calories_burned);
+
     document.getElementById('calories_consumed').value = entry.calories_consumed ?? '';
     document.getElementById('carbs').value = entry.carbs || '';
     document.getElementById('weight_kg').value = entry.weight_kg || '';
     document.getElementById('mood').value = entry.mood || '';
     document.getElementById('notes').value = entry.notes || '';
+
     setMoodButton(entry.mood);
   } catch (err) {
     showStatus("Unable to load today's entry", true);
@@ -89,5 +97,6 @@ function updateCaloriesTotal(existingTotal) {
   const gym = Number(document.getElementById('calories_gym').value) || 0;
   const tread = Number(document.getElementById('calories_treadmill').value) || 0;
   const total = gym + tread;
-  document.getElementById('calories_total').textContent = total || existingTotal || 0;
+  document.getElementById('calories_total').textContent =
+    total || existingTotal || 0;
 }
