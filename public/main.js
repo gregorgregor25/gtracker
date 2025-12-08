@@ -119,6 +119,7 @@ function setupInstallPrompt() {
       if (navInstall) navInstall.style.display = 'none';
     });
   };
+
   if (installButton) installButton.addEventListener('click', handler);
   if (navInstall) navInstall.addEventListener('click', handler);
 }

@@ -22,12 +22,15 @@ function render() {
   if (filter) {
     filtered = entries.filter((e) => e.date.startsWith(filter));
   }
-  filtered = filtered.sort((a, b) => newestFirst ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date));
+  filtered = filtered.sort((a, b) =>
+    newestFirst ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date)
+  );
 
   filtered.forEach((e) => {
     const tr = document.createElement('tr');
     const gymClass = e.gym_done ? 'badge success' : 'badge danger';
     const gymText = e.gym_done ? '✅' : '❌';
+
     tr.innerHTML = `
       <td>${e.date}</td>
       <td><span class="${gymClass}">${gymText}</span></td>

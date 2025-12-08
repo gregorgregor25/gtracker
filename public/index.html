@@ -24,6 +24,7 @@
       </div>
     </nav>
   </header>
+
   <main>
     <div class="hero">
       <div>
@@ -34,6 +35,7 @@
           <span class="badge" id="today-mood">Mood: —</span>
         </div>
       </div>
+
       <div class="card" style="max-width:280px; position:relative;">
         <div class="ribbon" id="streak-ribbon">Focus Mode</div>
         <div class="circle-progress" id="treadmill-ring"><span id="treadmill-ring-text">0%</span></div>
@@ -47,7 +49,9 @@
           <h2>Today</h2>
           <div id="gym-status" class="badge">Loading...</div>
         </div>
+
         <div class="banner" id="today-message"></div>
+
         <div class="grid two" style="margin-top:12px;">
           <div class="stat">
             <div>Calories 🔥</div>
@@ -66,15 +70,18 @@
             <strong id="stat-treadmill">—</strong>
           </div>
         </div>
+
         <div class="progress" aria-label="Treadmill progress">
           <span id="treadmill-progress" style="width:0%"></span>
         </div>
         <small class="muted">Goal: 120 minutes</small>
+
         <div class="flex" style="margin-top:10px;" id="achievement-badges"></div>
       </div>
 
       <div class="card">
         <h2>Streaks & Consistency</h2>
+
         <div class="grid two">
           <div class="stat">
             <div>Current streak</div>
@@ -85,14 +92,18 @@
             <strong id="best-streak">0</strong>
           </div>
         </div>
+
         <div class="consistency-pill" style="margin-top:14px;">
           <div class="badge">Score</div>
           <h2 id="consistency-score">0</h2>
         </div>
+
         <div class="muted" id="consistency-label"></div>
+
         <div class="progress" aria-label="Consistency score">
           <span id="consistency-progress" style="width:0%"></span>
         </div>
+
         <div class="flex" id="badge-container"></div>
       </div>
     </section>
@@ -106,6 +117,7 @@
           <a class="btn secondary" href="weight.html">Weight Trend</a>
         </div>
       </div>
+
       <div class="card" id="install-card" style="display:none;">
         <h2>Install as App</h2>
         <p class="muted">Add GTracker to your home screen for offline-friendly quick logging.</p>
@@ -113,7 +125,9 @@
       </div>
     </section>
   </main>
+
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
   <script src="main.js"></script>
   <script src="dashboard.js"></script>
 </body>

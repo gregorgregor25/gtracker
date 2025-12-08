@@ -5,15 +5,18 @@ async function renderChart() {
   try {
     const entries = await fetchJSON('/api/entries');
     const weightEntries = entries.filter((e) => e.weight_kg !== null && e.weight_kg !== undefined);
+
     const labels = weightEntries.map((e) => e.date);
     const data = weightEntries.map((e) => e.weight_kg);
 
     if (!data.length) {
-      document.getElementById('weight-stats').innerHTML = '<p class="muted">No weight data yet.</p>';
+      document.getElementById('weight-stats').innerHTML =
+        '<p class="muted">No weight data yet.</p>';
       return;
     }
 
     const ctx = document.getElementById('weight-chart');
+
     new Chart(ctx, {
       type: 'line',
       data: {
@@ -58,6 +61,7 @@ async function renderChart() {
       <div class="stat"><div>Percent change</div><strong>${pct}%</strong></div>
     `;
   } catch (err) {
-    document.getElementById('weight-stats').innerHTML = '<p class="muted">Unable to load chart.</p>';
+    document.getElementById('weight-stats').innerHTML =
+      '<p class="muted">Unable to load chart.</p>';
   }
 }

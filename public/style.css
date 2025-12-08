@@ -135,18 +135,12 @@ main {
 }
 
 h1 { margin: 6px 0 10px; font-size: 1.6rem; }
-
 h2 { margin: 0 0 10px; }
-
 h3 { margin: 12px 0 6px; }
 
 .muted { color: var(--muted); }
 
-.grid {
-  display: grid;
-  gap: 14px;
-}
-
+.grid { display: grid; gap: 14px; }
 .grid.two { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 
 .card {
@@ -367,11 +361,7 @@ button.secondary, .btn.secondary {
 }
 
 .hero-title { font-size: 1.2rem; margin: 0; }
-
-.headline {
-  font-weight: 700;
-  font-size: 1.3rem;
-}
+.headline { font-weight: 700; font-size: 1.3rem; }
 
 .install-btn { background: var(--install-bg); color: #fff; }
 

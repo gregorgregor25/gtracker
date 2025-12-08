@@ -39,11 +39,12 @@ async function loadToday() {
     document.getElementById('treadmill-progress').style.width = `${progress}%`;
     animateRing(document.getElementById('treadmill-ring'), progress);
 
-    const message = entry.gym_done && entry.treadmill_minutes >= TREADMILL_GOAL
-      ? 'You smashed it today! Perfect training day!'
-      : entry.gym_done
-      ? 'Great job hitting the gym!'
-      : 'You got this. Gym time awaits.';
+    const message =
+      entry.gym_done && entry.treadmill_minutes >= TREADMILL_GOAL
+        ? 'You smashed it today! Perfect training day!'
+        : entry.gym_done
+        ? 'Great job hitting the gym!'
+        : 'You got this. Gym time awaits.';
     document.getElementById('today-message').textContent = message;
 
     if (entry.gym_done && entry.treadmill_minutes >= TREADMILL_GOAL && !previousTreadGoal) {
