@@ -8,20 +8,25 @@ let newestFirst = true;
 })();
 
 document.getElementById('month-filter').addEventListener('change', render);
+
 document.getElementById('toggle-sort').addEventListener('click', () => {
   newestFirst = !newestFirst;
-  document.getElementById('toggle-sort').textContent = newestFirst ? 'Newest first' : 'Oldest first';
+  document.getElementById('toggle-sort').textContent =
+    newestFirst ? 'Newest first' : 'Oldest first';
   render();
 });
 
 function render() {
   const tbody = document.querySelector('#history-table tbody');
   tbody.innerHTML = '';
+
   const filter = document.getElementById('month-filter').value;
   let filtered = entries;
+
   if (filter) {
     filtered = entries.filter((e) => e.date.startsWith(filter));
   }
+
   filtered = filtered.sort((a, b) =>
     newestFirst ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date)
   );

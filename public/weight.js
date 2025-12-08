@@ -4,7 +4,9 @@ renderChart();
 async function renderChart() {
   try {
     const entries = await fetchJSON('/api/entries');
-    const weightEntries = entries.filter((e) => e.weight_kg !== null && e.weight_kg !== undefined);
+    const weightEntries = entries.filter(
+      (e) => e.weight_kg !== null && e.weight_kg !== undefined
+    );
 
     const labels = weightEntries.map((e) => e.date);
     const data = weightEntries.map((e) => e.weight_kg);
@@ -26,7 +28,7 @@ async function renderChart() {
             label: 'Weight (kg)',
             data,
             borderColor: '#5b7cfa',
-            backgroundColor: 'rgba(91, 124, 250, 0.2)',
+            backgroundColor: 'rgba(91,124,250,0.2)',
             tension: 0.35,
             fill: true,
             pointRadius: 4,

@@ -6,6 +6,7 @@ const form = document.getElementById('today-form');
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
+
   const data = {
     gym_done: document.getElementById('gym_done').checked,
     treadmill_minutes: document.getElementById('treadmill_minutes').value,

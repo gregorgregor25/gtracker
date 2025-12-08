@@ -35,7 +35,10 @@ async function loadToday() {
     document.getElementById('stat-weight').textContent = formatNumber(entry.weight_kg, 1);
     document.getElementById('stat-treadmill').textContent = entry.treadmill_minutes || 0;
 
-    const progress = Math.min(100, Math.round(((entry.treadmill_minutes || 0) / TREADMILL_GOAL) * 100));
+    const progress = Math.min(
+      100,
+      Math.round(((entry.treadmill_minutes || 0) / TREADMILL_GOAL) * 100)
+    );
     document.getElementById('treadmill-progress').style.width = `${progress}%`;
     animateRing(document.getElementById('treadmill-ring'), progress);
 
