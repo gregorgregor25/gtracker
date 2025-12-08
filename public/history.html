@@ -1,23 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#5b7cfa" />
   <title>History - Health Tracker</title>
+  <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header>
     <nav class="nav">
-      <a id="nav-dashboard" href="/">Dashboard</a>
-      <a id="nav-edit" href="edit.html">Edit Today</a>
-      <a id="nav-history" href="history.html" class="active">History</a>
-      <a id="nav-weight" href="weight.html">Weight</a>
+      <div class="links">
+        <strong>GTracker</strong>
+        <a id="nav-dashboard" href="/">Dashboard</a>
+        <a id="nav-edit" href="edit.html">Edit Today</a>
+        <a id="nav-history" href="history.html" class="active">History</a>
+        <a id="nav-weight" href="weight.html">Weight</a>
+      </div>
+      <div class="actions">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">🌙</button>
+      </div>
     </nav>
   </header>
+
   <main>
-    <h1>History</h1>
-    <section class="card">
+    <div class="hero">
+      <div>
+        <p class="muted hero-title">See the patterns</p>
+        <h1>History</h1>
+      </div>
+      <div class="badge">Keep stacking days</div>
+    </div>
+
+    <section class="card fade-in">
       <div class="flex" style="justify-content: space-between; align-items:center;">
         <div>
           <label class="muted">Filter by month</label>
@@ -25,6 +41,7 @@
         </div>
         <button id="toggle-sort" class="secondary">Newest first</button>
       </div>
+
       <div class="table-wrapper">
         <table class="table" id="history-table">
           <thead>
@@ -44,6 +61,9 @@
       </div>
     </section>
   </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
   <script src="main.js"></script>
   <script src="history.js"></script>
 </body>

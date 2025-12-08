@@ -1,7 +1,10 @@
 setActiveNav('nav-edit');
 loadForm();
+attachMoodButtons();
 
-document.getElementById('today-form').addEventListener('submit', async (e) => {
+const form = document.getElementById('today-form');
+
+form.addEventListener('submit', async (e) => {
   e.preventDefault();
   const data = {
     gym_done: document.getElementById('gym_done').checked,
@@ -19,9 +22,13 @@ document.getElementById('today-form').addEventListener('submit', async (e) => {
       method: 'POST',
       body: JSON.stringify(data),
     });
+
     showStatus('Saved! Nice work.');
+    showToast('Saved! Nice work.');
+
     if (saved.gym_done && saved.treadmill_minutes >= 120) {
-      showStatus('You smashed it today! Perfect training day!');
+      showToast('Perfect training day!');
+      launchConfetti();
     }
   } catch (err) {
     showStatus('Save failed. Please try again.', true);
@@ -31,6 +38,9 @@ document.getElementById('today-form').addEventListener('submit', async (e) => {
 async function loadForm() {
   try {
     const entry = await fetchJSON('/api/entries/today');
+
+    document.getElementById('today-date-badge').textContent = entry.date;
+
     document.getElementById('gym_done').checked = !!entry.gym_done;
     document.getElementById('treadmill_minutes').value = entry.treadmill_minutes || '';
     document.getElementById('treadmill_distance_km').value = entry.treadmill_distance_km || '';
@@ -39,8 +49,10 @@ async function loadForm() {
     document.getElementById('weight_kg').value = entry.weight_kg || '';
     document.getElementById('mood').value = entry.mood || '';
     document.getElementById('notes').value = entry.notes || '';
+
+    setMoodButton(entry.mood);
   } catch (err) {
-    showStatus('Unable to load today\'s entry', true);
+    showStatus("Unable to load today's entry", true);
   }
 }
 
@@ -50,4 +62,19 @@ function showStatus(text, danger = false) {
   banner.textContent = text;
   banner.style.background = danger ? '#fee2e2' : '#e0f2fe';
   banner.style.color = danger ? '#991b1b' : '#075985';
+}
+
+function attachMoodButtons() {
+  document.querySelectorAll('.mood-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      setMoodButton(btn.dataset.mood);
+    });
+  });
+}
+
+function setMoodButton(val) {
+  document.getElementById('mood').value = val || '';
+  document.querySelectorAll('.mood-btn').forEach((b) => {
+    b.classList.toggle('active', b.dataset.mood === val);
+  });
 }
