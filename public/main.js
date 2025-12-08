@@ -4,17 +4,17 @@ let lastBestStreak = null;
 
 const TREADMILL_GOAL_MINUTES = 120;
 
+/* FETCH WRAPPER */
 async function fetchJSON(url, options = {}) {
   const res = await fetch(url, {
     headers: { "Content-Type": "application/json" },
     ...options,
   });
-  if (!res.ok) {
-    throw new Error("Request failed");
-  }
+  if (!res.ok) throw new Error("Request failed");
   return res.json();
 }
 
+/* NAV HIGHLIGHTING */
 function setActiveNav(id) {
   document.querySelectorAll(".nav a").forEach((link) => {
     if (link.id === id) link.classList.add("active");
@@ -27,6 +27,7 @@ function formatNumber(value, digits = 0) {
   return Number(value).toFixed(digits);
 }
 
+/* MOTIVATION TEXT */
 function motivationalText(score) {
   if (score >= 80) return "You're on fire 🔥";
   if (score >= 60) return "Solid momentum 💪";
@@ -34,7 +35,7 @@ function motivationalText(score) {
   return "Fresh start week ✨";
 }
 
-/* FULL BADGE CATALOG */
+/* FULL BADGE CATALOG FOR BADGES PAGE */
 function buildBadgeCatalog(entries = [], summary = {}, streaks = {}) {
   const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date));
 
@@ -76,118 +77,70 @@ function buildBadgeCatalog(entries = [], summary = {}, streaks = {}) {
   const currentStreak = streaks?.current_gym_streak || 0;
 
   return [
-    {
-      id: "gym-3",
-      category: "Gym streaks",
-      title: "3-day Gym Streak",
-      icon: "💥",
+    { id: "gym-3", category: "Gym streaks", title: "3-day Gym Streak", icon: "💥",
       description: "Stack three gym days back-to-back.",
       achieved: longestStreak >= 3,
-      detail: `${currentStreak}-day current streak`,
+      detail: `${currentStreak}-day current streak`
     },
-    {
-      id: "gym-7",
-      category: "Gym streaks",
-      title: "7-day Gym Streak",
-      icon: "🏆",
+    { id: "gym-7", category: "Gym streaks", title: "7-day Gym Streak", icon: "🏆",
       description: "Hold the line for a full week.",
       achieved: longestStreak >= 7,
-      detail: `Best streak: ${longestStreak} days`,
+      detail: `Best streak: ${longestStreak} days`
     },
-    {
-      id: "gym-14",
-      category: "Gym streaks",
-      title: "14-day Gym Streak",
-      icon: "⚡",
+    { id: "gym-14", category: "Gym streaks", title: "14-day Gym Streak", icon: "⚡",
       description: "Two unstoppable weeks in a row.",
       achieved: longestStreak >= 14,
-      detail: `Longest: ${longestStreak} days`,
+      detail: `Longest: ${longestStreak} days`
     },
-    {
-      id: "consistency-beast",
-      category: "Consistency awards",
-      title: "Consistency Beast (80+)",
-      icon: "🦁",
+    { id: "consistency-beast", category: "Consistency awards", title: "Consistency Beast (80+)", icon: "🦁",
       description: "Keep weekly consistency above 80.",
       achieved: weeklyConsistency >= 80,
-      detail: `This week: ${weeklyConsistency}%`,
+      detail: `This week: ${weeklyConsistency}%`
     },
-    {
-      id: "consistency-solid",
-      category: "Consistency awards",
-      title: "Solid Momentum (60+)",
-      icon: "🚀",
+    { id: "consistency-solid", category: "Consistency awards", title: "Solid Momentum (60+)", icon: "🚀",
       description: "Stay at 60+ weekly consistency.",
       achieved: weeklyConsistency >= 60,
-      detail: `This week: ${weeklyConsistency}%`,
+      detail: `This week: ${weeklyConsistency}%`
     },
-    {
-      id: "logging-week",
-      category: "Consistency awards",
-      title: "Logged Every Day",
-      icon: "📅",
+    { id: "logging-week", category: "Consistency awards", title: "Logged Every Day", icon: "📅",
       description: "Capture all seven days this week.",
       achieved: loggedDaysThisWeek >= 7,
-      detail: `${loggedDaysThisWeek}/7 days logged`,
+      detail: `${loggedDaysThisWeek}/7 days logged`
     },
-    {
-      id: "tread-100km",
-      category: "Treadmill milestones",
-      title: "Treadmill 100 km total",
-      icon: "🛣️",
+    { id: "tread-100km", category: "Treadmill milestones", title: "Treadmill 100 km total", icon: "🛣️",
       description: "Accumulate 100 km on the belt.",
       achieved: totalTreadmillDistance >= 100,
-      detail: `${totalTreadmillDistance.toFixed(1)} km total`,
+      detail: `${totalTreadmillDistance.toFixed(1)} km total`
     },
-    {
-      id: "tread-10h",
-      category: "Treadmill milestones",
-      title: "10 Hours Moving",
-      icon: "⏱️",
+    { id: "tread-10h", category: "Treadmill milestones", title: "10 Hours Moving", icon: "⏱️",
       description: "Spend 600 minutes on the treadmill.",
       achieved: totalTreadmillMinutes >= 600,
-      detail: `${totalTreadmillMinutes} min total`,
+      detail: `${totalTreadmillMinutes} min total`
     },
-    {
-      id: "tread-goal-week",
-      category: "Treadmill milestones",
-      title: "Goal Crusher",
-      icon: "🥇",
+    { id: "tread-goal-week", category: "Treadmill milestones", title: "Goal Crusher", icon: "🥇",
       description: "Hit 120 minutes on 5+ days.",
       achieved: treadmillGoalDays >= 5,
-      detail: `${treadmillGoalDays} days at goal`,
+      detail: `${treadmillGoalDays} days at goal`
     },
-    {
-      id: "weight-1",
-      category: "Weight milestones",
-      title: "Weight –1 kg",
-      icon: "🎯",
+    { id: "weight-1", category: "Weight milestones", title: "Weight –1 kg", icon: "🎯",
       description: "Lose the first kilogram from your start.",
       achieved: weightDelta >= 1,
-      detail: `Change: ${weightDelta.toFixed(1)} kg`,
+      detail: `Change: ${weightDelta.toFixed(1)} kg`
     },
-    {
-      id: "weight-3",
-      category: "Weight milestones",
-      title: "Weight –3 kg",
-      icon: "🪶",
+    { id: "weight-3", category: "Weight milestones", title: "Weight –3 kg", icon: "🪶",
       description: "Trim three kilograms from your baseline.",
       achieved: weightDelta >= 3,
-      detail: `Change: ${weightDelta.toFixed(1)} kg`,
+      detail: `Change: ${weightDelta.toFixed(1)} kg`
     },
-    {
-      id: "gym-50",
-      category: "Gym streaks",
-      title: "Gym Century-in-Progress",
-      icon: "💪",
+    { id: "gym-50", category: "Gym streaks", title: "Gym Century-in-Progress", icon: "💪",
       description: "Log 50 lifetime gym days.",
       achieved: gymDays >= 50,
-      detail: `${gymDays} gym days total`,
-    },
+      detail: `${gymDays} gym days total`
+    }
   ];
 }
 
-/* SIMPLE BADGE LIST STILL USED IN SOME UI AREAS */
+/* SIMPLE BADGE LIST FOR DASHBOARD */
 function badgeList(summary, streaks) {
   const badges = [];
   if (streaks.current_gym_streak >= 5)
@@ -198,7 +151,7 @@ function badgeList(summary, streaks) {
   return badges;
 }
 
-/* THEME */
+/* THEME HANDLING */
 const root = document.documentElement;
 const storedTheme = localStorage.getItem("gtracker-theme");
 const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -212,17 +165,17 @@ function setTheme(mode) {
   if (toggle) toggle.textContent = mode === "dark" ? "☀️" : "🌙";
 }
 
-window
-  .matchMedia("(prefers-color-scheme: dark)")
-  .addEventListener("change", (e) => {
-    if (!localStorage.getItem("gtracker-theme")) {
-      setTheme(e.matches ? "dark" : "light");
-    }
-  });
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+  if (!localStorage.getItem("gtracker-theme")) {
+    setTheme(e.matches ? "dark" : "light");
+  }
+});
 
+/* ON LOAD */
 document.addEventListener("DOMContentLoaded", () => {
   const toggle = document.getElementById("theme-toggle");
   setTheme(root.getAttribute("data-theme"));
+
   if (toggle) {
     toggle.addEventListener("click", () => {
       const next =
@@ -257,7 +210,7 @@ function launchConfetti() {
   }
 }
 
-/* PWA INSTALL */
+/* PWA INSTALL HANDLING */
 function setupInstallPrompt() {
   const installCard = document.getElementById("install-card");
   const installButton = document.getElementById("install-btn");
@@ -300,22 +253,24 @@ function updateMoodBadge(value) {
   if (el) el.textContent = `Mood: ${value || "—"}`;
 }
 
+/* PROGRESS RING */
 function animateRing(el, percent) {
   if (!el) return;
   const deg = Math.min(100, percent) * 3.6;
-  el.style.background = `conic-gradient(var(--accent) ${deg}deg, var(--accent-2) ${
-    deg + 10
-  }deg, rgba(255,255,255,0.1) ${deg + 10}deg)`;
+  el.style.background = `conic-gradient(var(--accent) ${deg}deg,
+                                       var(--accent-2) ${deg + 10}deg,
+                                       rgba(255,255,255,0.1) ${deg + 10}deg)`;
   const text = el.querySelector("span");
   if (text) text.textContent = `${Math.round(percent)}%`;
 }
 
-/* RIPPLE EFFECT */
+/* BUTTON RIPPLE EFFECT */
 function rippleify(button) {
   button.addEventListener("click", (e) => {
     const circle = document.createElement("span");
     const diameter = Math.max(button.clientWidth, button.clientHeight);
     const radius = diameter / 2;
+
     circle.style.width = circle.style.height = `${diameter}px`;
     circle.style.position = "absolute";
     circle.style.borderRadius = "50%";
@@ -324,16 +279,20 @@ function rippleify(button) {
     circle.style.transform = "scale(0)";
     circle.style.pointerEvents = "none";
     circle.style.transition = "transform 300ms ease, opacity 300ms ease";
+
     const rect = button.getBoundingClientRect();
     circle.style.left = `${e.clientX - rect.left - radius}px`;
     circle.style.top = `${e.clientY - rect.top - radius}px`;
+
     button.style.position = "relative";
     button.style.overflow = "hidden";
     button.appendChild(circle);
+
     requestAnimationFrame(() => {
       circle.style.transform = "scale(2)";
       circle.style.opacity = "0";
     });
+
     setTimeout(() => circle.remove(), 350);
   });
 }

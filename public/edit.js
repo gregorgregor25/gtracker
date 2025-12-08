@@ -39,7 +39,6 @@ form.addEventListener('submit', async (e) => {
 async function loadForm() {
   try {
     const entry = await fetchJSON('/api/entries/today');
-
     document.getElementById('today-date-badge').textContent = entry.date;
 
     document.getElementById('gym_done').checked = !!entry.gym_done;

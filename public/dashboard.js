@@ -58,7 +58,8 @@ async function loadToday() {
     localStorage.setItem('gtracker-lastGym', !!entry.gym_done);
     localStorage.setItem('gtracker-lastTreadGoal', entry.treadmill_minutes >= TREADMILL_GOAL);
   } catch (err) {
-    document.getElementById('today-message').textContent = "Unable to load today's data";
+    document.getElementById('today-message').textContent =
+      "Unable to load today's data";
   }
 }
 
@@ -69,15 +70,20 @@ async function loadSummary() {
       fetchJSON('/api/summary/streaks'),
     ]);
 
-    document.getElementById('current-streak').textContent = streaks.current_gym_streak;
-    document.getElementById('best-streak').textContent = streaks.longest_gym_streak;
-    document.getElementById('streak-ribbon').textContent = `${streaks.current_gym_streak}-day streak`;
+    document.getElementById('current-streak').textContent =
+      streaks.current_gym_streak;
+    document.getElementById('best-streak').textContent =
+      streaks.longest_gym_streak;
+    document.getElementById('streak-ribbon').textContent =
+      `${streaks.current_gym_streak}-day streak`;
 
     const score = summary.consistency_score;
     document.getElementById('consistency-score').textContent = score;
-    document.getElementById('consistency-label').textContent = motivationalText(score);
+    document.getElementById('consistency-label').textContent =
+      motivationalText(score);
     document.getElementById('consistency-progress').style.width = `${score}%`;
-    document.getElementById('motivation-heading').textContent = motivationalText(score);
+    document.getElementById('motivation-heading').textContent =
+      motivationalText(score);
 
     const badgeContainer = document.getElementById('badge-container');
     badgeContainer.innerHTML = '';
@@ -90,9 +96,12 @@ async function loadSummary() {
 
     const achievementArea = document.getElementById('achievement-badges');
     achievementArea.innerHTML = '';
-    if (streaks.current_gym_streak >= 5) addAchievement(achievementArea, '🏆', '5-day streak');
-    if (summary.treadmill_days >= 3) addAchievement(achievementArea, '🚶‍♂️', '3 treadmill sessions');
-    if ((summary.entries || []).length >= 7) addAchievement(achievementArea, '🗓️', 'Logged every day this week');
+    if (streaks.current_gym_streak >= 5)
+      addAchievement(achievementArea, '🏆', '5-day streak');
+    if (summary.treadmill_days >= 3)
+      addAchievement(achievementArea, '🚶‍♂️', '3 treadmill sessions');
+    if ((summary.entries || []).length >= 7)
+      addAchievement(achievementArea, '🗓️', 'Logged every day this week');
 
     const storedBest = Number(localStorage.getItem('gtracker-bestStreak') || 0);
     if (streaks.longest_gym_streak > storedBest) {
@@ -101,7 +110,8 @@ async function loadSummary() {
       localStorage.setItem('gtracker-bestStreak', streaks.longest_gym_streak);
     }
   } catch (err) {
-    document.getElementById('consistency-label').textContent = 'Unable to load summary';
+    document.getElementById('consistency-label').textContent =
+      'Unable to load summary';
   }
 }
 

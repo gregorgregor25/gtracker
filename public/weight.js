@@ -4,6 +4,7 @@ renderChart();
 async function renderChart() {
   try {
     const entries = await fetchJSON('/api/entries');
+
     const weightEntries = entries.filter(
       (e) => e.weight_kg !== null && e.weight_kg !== undefined
     );
