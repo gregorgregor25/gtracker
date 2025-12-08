@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#5b7cfa" />
+  <title>Edit Today - Health Tracker</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <nav class="nav">
+      <div class="links">
+        <strong>GTracker</strong>
+        <a id="nav-dashboard" href="/">Dashboard</a>
+        <a id="nav-edit" href="edit.html" class="active">Edit Today</a>
+        <a id="nav-history" href="history.html">History</a>
+        <a id="nav-calendar" href="calendar.html">Calendar</a>
+        <a id="nav-weekly" href="weekly.html">Weekly</a>
+        <a id="nav-badges" href="badges.html">Badges</a>
+        <a id="nav-profile" href="profile.html">Profile</a>
+        <a id="nav-weight" href="weight.html">Weight</a>
+      </div>
+      <div class="actions">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">🌙</button>
+      </div>
+    </nav>
+  </header>
+  <main>
+    <div class="hero">
+      <div>
+        <p class="muted hero-title">Lock in your wins for today</p>
+        <h1>Edit Today</h1>
+      </div>
+      <div class="badge" id="today-date-badge">Today</div>
+    </div>
+
+    <section class="quick-actions-wrapper" data-quick-actions></section>
+
+    <section class="card">
+      <div id="save-status" class="banner" style="display:none"></div>
+      <form id="today-form" class="grid">
+        <div>
+          <div class="section-title">EXERCISE</div>
+          <label class="flex" style="justify-content: space-between;">
+            <span>Gym workout done</span>
+            <input type="checkbox" name="gym_done" id="gym_done" />
+          </label>
+
+          <label for="treadmill_minutes" class="section-title">Treadmill minutes</label>
+          <input type="number" id="treadmill_minutes" name="treadmill_minutes" min="0" step="1" />
+
+          <label for="treadmill_distance_km" class="section-title">Treadmill distance (km)</label>
+          <input type="number" id="treadmill_distance_km" name="treadmill_distance_km" min="0" step="0.1" />
+
+          <div class="section-title">NUTRITION</div>
+          <label for="calories_gym">Gym calories burned</label>
+          <input type="number" id="calories_gym" name="calories_gym" min="0" step="1" />
+
+          <label for="calories_treadmill">Treadmill calories burned</label>
+          <input type="number" id="calories_treadmill" name="calories_treadmill" min="0" step="1" />
+
+          <div class="stat" style="margin-top:6px;">
+            <div>Total calories burned</div>
+            <strong id="calories_total">0</strong>
+          </div>
+
+          <label for="calories_consumed">Calories consumed (food intake)</label>
+          <input type="number" id="calories_consumed" name="calories_consumed" min="0" step="1" placeholder="e.g., 2200" />
+
+          <label for="carbs">Carbs (g)</label>
+          <input type="number" id="carbs" name="carbs" min="0" step="1" />
+        </div>
+
+        <div>
+          <div class="section-title">BODY METRICS</div>
+          <label for="weight_kg">Weight (kg)</label>
+          <input type="number" id="weight_kg" name="weight_kg" min="0" step="0.1" />
+
+          <div class="section-title">MOOD</div>
+          <div class="mood-options" role="group" aria-label="Select mood">
+            <button type="button" class="mood-btn" data-mood="low">Low</button>
+            <button type="button" class="mood-btn" data-mood="ok">OK</button>
+            <button type="button" class="mood-btn" data-mood="good">Good</button>
+            <button type="button" class="mood-btn" data-mood="great">Great</button>
+          </div>
+          <select id="mood" name="mood" style="display:none;">
+            <option value="">-- select --</option>
+            <option value="low">Low</option>
+            <option value="ok">Ok</option>
+            <option value="good">Good</option>
+            <option value="great">Great</option>
+          </select>
+
+          <div class="section-title">NOTES</div>
+          <textarea id="notes" name="notes" rows="4" placeholder="How did the day feel?"></textarea>
+
+          <div style="margin-top:16px; text-align:right;">
+            <button type="submit" class="btn" id="save-btn">Save Today</button>
+          </div>
+        </div>
+      </form>
+    </section>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="main.js"></script>
+  <script src="edit.js"></script>
+</body>
+</html>

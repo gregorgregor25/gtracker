@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#5b7cfa" />
+  <title>Calendar Heatmap - Health Tracker</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <nav class="nav">
+      <div class="links">
+        <strong>GTracker</strong>
+        <a id="nav-dashboard" href="/">Dashboard</a>
+        <a id="nav-edit" href="edit.html">Edit Today</a>
+        <a id="nav-history" href="history.html">History</a>
+        <a id="nav-calendar" href="calendar.html" class="active">Calendar</a>
+        <a id="nav-weekly" href="weekly.html">Weekly</a>
+        <a id="nav-badges" href="badges.html">Badges</a>
+        <a id="nav-profile" href="profile.html">Profile</a>
+        <a id="nav-weight" href="weight.html">Weight</a>
+      </div>
+      <div class="actions">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">🌙</button>
+      </div>
+    </nav>
+  </header>
+  <main>
+    <div class="hero">
+      <div>
+        <p class="muted hero-title">Consistency at a glance</p>
+        <h1>Calendar Heatmap</h1>
+        <div class="flex" style="gap:8px; align-items:center;">
+          <span class="badge" id="calendar-range">Loading range...</span>
+          <span class="badge" id="calendar-streaks">Streaks loading...</span>
+        </div>
+      </div>
+      <div class="badge" id="calendar-summary-pill">Daily discipline map</div>
+    </div>
+
+    <section class="quick-actions-wrapper" data-quick-actions></section>
+
+    <section class="card fade-in">
+      <div class="flex" style="justify-content: space-between; align-items:center; flex-wrap: wrap; gap:10px;">
+        <h2>Past Year Consistency</h2>
+        <div class="flex legend">
+          <span class="legend-item"><span class="legend-box level-0"></span>0</span>
+          <span class="legend-item"><span class="legend-box level-1"></span>1-40%</span>
+          <span class="legend-item"><span class="legend-box level-2"></span>40-70%</span>
+          <span class="legend-item"><span class="legend-box level-3"></span>70-100%</span>
+        </div>
+      </div>
+      <div class="heatmap" id="heatmap"></div>
+      <p class="muted">Hover or tap a day to see the score, gym status, and treadmill minutes.</p>
+    </section>
+
+    <section class="grid two fade-in" style="margin-top:14px;">
+      <div class="card">
+        <h2>Highlights</h2>
+        <div class="insight-grid" id="calendar-insights">
+          <div class="mini-card">
+            <div class="badge">Best streak</div>
+            <strong id="calendar-best-streak">—</strong>
+            <p class="muted" id="calendar-best-detail">Waiting for data...</p>
+          </div>
+          <div class="mini-card">
+            <div class="badge">Current streak</div>
+            <strong id="calendar-current-streak">—</strong>
+            <p class="muted">Keep the line alive</p>
+          </div>
+          <div class="mini-card">
+            <div class="badge">Peak day</div>
+            <strong id="calendar-peak-date">—</strong>
+            <p class="muted" id="calendar-peak-score">Highest consistency day</p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Notes</h2>
+        <p class="muted">Squares show daily consistency. A small dot means gym was completed that day. Darker squares represent higher overall daily scores blending gym and treadmill effort.</p>
+        <p class="muted">Use this view to spot streaks and gaps across the year and plan your next push.</p>
+      </div>
+    </section>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="heatmap-tooltip" class="heatmap-tooltip" role="tooltip"></div>
+  <script src="main.js"></script>
+  <script src="calendar.js"></script>
+</body>
+</html>
