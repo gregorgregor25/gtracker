@@ -46,8 +46,12 @@
         <h2>Totals & Averages</h2>
         <div class="grid two">
           <div class="stat">
-            <div>Calories 🔥</div>
+            <div>Total calories 🔥</div>
             <strong id="weekly-calories">—</strong>
+          </div>
+          <div class="stat">
+            <div>Total calories consumed 🍽️</div>
+            <strong id="weekly-calories-consumed">—</strong>
           </div>
           <div class="stat">
             <div>Treadmill ⏱️</div>
@@ -60,6 +64,10 @@
           <div class="stat">
             <div>Gym Days 🏋️</div>
             <strong id="weekly-gym-days">—</strong>
+          </div>
+          <div class="stat">
+            <div>Avg calories eaten</div>
+            <strong id="weekly-calories-consumed-avg">—</strong>
           </div>
           <div class="stat">
             <div>Consistency Score ⭐</div>
@@ -80,21 +88,31 @@
       <div class="card">
         <h2>Insight Cards</h2>
         <div class="insight-grid" id="insight-grid">
+
           <div class="mini-card">
             <div class="badge">Best day</div>
             <strong id="insight-best-day">—</strong>
             <p class="muted" id="insight-best-day-detail">Most consistent effort</p>
           </div>
+
           <div class="mini-card">
             <div class="badge">Treadmill goal hits</div>
             <strong id="insight-tread-goal">—</strong>
             <p class="muted">Days at 120+ minutes</p>
           </div>
+
           <div class="mini-card">
             <div class="badge">Carb discipline</div>
             <strong id="insight-carbs">—</strong>
             <p class="muted" id="insight-carbs-detail">Lowest carb day</p>
           </div>
+
+          <div class="mini-card">
+            <div class="badge">Lightest calorie day</div>
+            <strong id="insight-calories-consumed">—</strong>
+            <p class="muted" id="insight-calories-consumed-detail">Lowest intake logged</p>
+          </div>
+
         </div>
       </div>
     </section>

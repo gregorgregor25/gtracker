@@ -13,6 +13,7 @@ form.addEventListener('submit', async (e) => {
     treadmill_distance_km: document.getElementById('treadmill_distance_km').value,
     calories_gym: document.getElementById('calories_gym').value,
     calories_treadmill: document.getElementById('calories_treadmill').value,
+    calories_consumed: document.getElementById('calories_consumed').value,
     carbs: document.getElementById('carbs').value,
     weight_kg: document.getElementById('weight_kg').value,
     mood: document.getElementById('mood').value,
@@ -40,8 +41,8 @@ form.addEventListener('submit', async (e) => {
 async function loadForm() {
   try {
     const entry = await fetchJSON('/api/entries/today');
-    document.getElementById('today-date-badge').textContent = entry.date;
 
+    document.getElementById('today-date-badge').textContent = entry.date;
     document.getElementById('gym_done').checked = !!entry.gym_done;
     document.getElementById('treadmill_minutes').value = entry.treadmill_minutes || '';
     document.getElementById('treadmill_distance_km').value = entry.treadmill_distance_km || '';
@@ -49,7 +50,10 @@ async function loadForm() {
     const fallbackCalories = entry.calories_total ?? entry.calories_burned ?? '';
     document.getElementById('calories_gym').value = entry.calories_gym ?? fallbackCalories;
     document.getElementById('calories_treadmill').value = entry.calories_treadmill ?? '';
+
     updateCaloriesTotal(entry.calories_total ?? entry.calories_burned);
+
+    document.getElementById('calories_consumed').value = entry.calories_consumed ?? '';
 
     document.getElementById('carbs').value = entry.carbs || '';
     document.getElementById('weight_kg').value = entry.weight_kg || '';

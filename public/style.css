@@ -66,6 +66,7 @@ header {
   z-index: 10;
   background: var(--nav-bg);
   backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
   border-bottom: 1px solid var(--card-border);
 }
 
@@ -115,10 +116,10 @@ header {
   font-weight: 600;
   cursor: pointer;
   box-shadow: var(--shadow);
-  transition: transform 0.2s ease;
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .theme-toggle:hover,
@@ -143,11 +144,12 @@ h3 { margin: 12px 0 6px; }
 .card {
   background: var(--card-bg);
   backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
   border-radius: 18px;
   padding: 18px;
   border: 1px solid var(--card-border);
   box-shadow: var(--shadow);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
 }
 
 .card:hover {
@@ -158,8 +160,8 @@ h3 { margin: 12px 0 6px; }
 .hero {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
   align-items: center;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
@@ -169,50 +171,39 @@ h3 { margin: 12px 0 6px; }
   gap: 6px;
   padding: 6px 10px;
   border-radius: 999px;
-  border: 1px solid var(--border);
   background: rgba(91, 124, 250, 0.12);
-  font-weight: 600;
   color: var(--text);
+  font-weight: 600;
+  border: 1px solid var(--border);
 }
 
-.badge.success {
-  background: var(--badge-success-bg);
-  color: var(--success);
-}
-
-.badge.danger {
-  background: var(--badge-danger-bg);
-  color: var(--danger);
-}
+.badge.success { background: var(--badge-success-bg); color: var(--success); border-color: transparent; }
+.badge.danger { background: var(--badge-danger-bg); color: var(--danger); border-color: transparent; }
 
 .stat {
   padding: 12px 14px;
+  border-radius: 14px;
   background: linear-gradient(145deg, rgba(91, 124, 250, 0.08), rgba(124, 58, 237, 0.06));
   border: 1px solid var(--card-border);
-  border-radius: 14px;
 }
 
-.stat strong {
-  display: block;
-  margin-top: 4px;
-  font-size: 1.2rem;
-}
+.stat strong { font-size: 1.2rem; display: block; margin-top: 4px; }
 
 .progress {
   height: 8px;
-  border-radius: 999px;
   background: var(--progress-bg);
+  border-radius: 999px;
   overflow: hidden;
   margin: 10px 0;
 }
 
 .progress span {
-  height: 100%;
   display: block;
+  height: 100%;
   width: 0%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
   border-radius: 999px;
   transition: width 0.3s ease;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
 }
 
 .consistency-pill {
@@ -233,11 +224,11 @@ h3 { margin: 12px 0 6px; }
 
 .circle-progress::after {
   content: '';
-  inset: 12px;
   position: absolute;
+  inset: 12px;
   background: var(--card-bg);
-  border: 1px solid var(--card-border);
   border-radius: 50%;
+  border: 1px solid var(--card-border);
 }
 
 .circle-progress span {
@@ -265,9 +256,9 @@ h3 { margin: 12px 0 6px; }
 
 .table th,
 .table td {
+  text-align: left;
   padding: 10px 12px;
   border-bottom: 1px solid var(--card-border);
-  text-align: left;
 }
 
 .table tbody tr:hover { background: rgba(91, 124, 250, 0.08); }
@@ -278,12 +269,12 @@ select,
 textarea {
   width: 100%;
   padding: 12px;
-  background: var(--input-bg);
   border-radius: 12px;
   border: 1px solid var(--card-border);
+  background: var(--input-bg);
   color: var(--text);
   font-size: 1rem;
-  transition: border 0.2s ease, box-shadow 0.2s ease;
+  transition: border 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
 }
 
 input:focus,
@@ -296,13 +287,13 @@ textarea:focus {
 
 button,
 .btn {
+  border: none;
   cursor: pointer;
   padding: 12px 16px;
   border-radius: 999px;
-  border: none;
+  font-weight: 700;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   color: #fff;
-  font-weight: 700;
   box-shadow: var(--shadow);
   transition: transform 0.15s ease, box-shadow 0.2s ease;
 }
@@ -321,13 +312,22 @@ button.secondary,
 .flex {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
   align-items: center;
+  flex-wrap: wrap;
 }
 
-.section-title { margin: 20px 0 6px; font-size: 0.95rem; letter-spacing: 0.04em; color: var(--muted); }
+.section-title {
+  margin: 20px 0 6px;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
 
-.mood-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.mood-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 
 .mood-btn {
   padding: 10px 14px;
@@ -336,6 +336,7 @@ button.secondary,
   background: var(--input-bg);
   cursor: pointer;
   font-weight: 600;
+  color: var(--text);
 }
 
 .mood-btn.active {
@@ -376,8 +377,8 @@ button.secondary,
 }
 
 .badge-card.achieved {
-  border-color: rgba(91, 124, 250, 0.35);
   box-shadow: 0 12px 30px rgba(91, 124, 250, 0.12);
+  border-color: rgba(91, 124, 250, 0.35);
 }
 
 .badge-card.locked { opacity: 0.85; }
@@ -424,7 +425,7 @@ button.secondary,
 .fade-in { animation: fadeIn 0.4s ease; }
 
 @media (max-width: 700px) {
-  .nav { flex-wrap: wrap; }
+  .nav { flex-wrap: wrap; gap: 8px; }
   .hero { align-items: flex-start; }
   h1 { font-size: 1.4rem; }
   .circle-progress { margin: 0 auto; }
@@ -470,10 +471,19 @@ button.secondary,
   border-radius: 14px;
   padding: 14px;
   box-shadow: var(--shadow);
-  transition: transform 0.2s ease;
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.mini-card:hover { transform: translateY(-2px); }
+.mini-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.12);
+}
+
+.mini-card strong { font-size: 1.1rem; display: block; }
+
+.mini-card .badge { margin-bottom: 8px; }
 
 .heatmap {
   display: flex;
@@ -490,13 +500,13 @@ button.secondary,
   border-radius: 6px;
   border: 1px solid var(--card-border);
   background: rgba(148,163,184,0.2);
-  transition: transform 0.1s ease;
   position: relative;
+  transition: transform 0.1s ease, box-shadow 0.2s ease;
 }
 
 .day:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 20px rgba(15,23,42,0.12);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
 }
 
 .day.level-0 { background: rgba(148,163,184,0.15); }
@@ -527,6 +537,7 @@ button.secondary,
   width: 16px;
   height: 16px;
   border-radius: 6px;
+  display: inline-block;
   border: 1px solid var(--card-border);
 }
 

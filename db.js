@@ -18,6 +18,7 @@ db.serialize(() => {
       calories_gym INTEGER DEFAULT 0,
       calories_treadmill INTEGER DEFAULT 0,
       calories_total INTEGER DEFAULT 0,
+      calories_consumed INTEGER,
       carbs INTEGER DEFAULT 0,
       weight_kg REAL,
       mood TEXT,
@@ -29,6 +30,7 @@ db.serialize(() => {
   addColumnIfMissing('entries', 'calories_gym', 'INTEGER DEFAULT 0');
   addColumnIfMissing('entries', 'calories_treadmill', 'INTEGER DEFAULT 0');
   addColumnIfMissing('entries', 'calories_total', 'INTEGER DEFAULT 0');
+  addColumnIfMissing('entries', 'calories_consumed', 'INTEGER');
 
   // Profile table (new feature)
   db.run(`

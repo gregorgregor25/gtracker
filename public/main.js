@@ -35,7 +35,7 @@ function motivationalText(score) {
   return "Fresh start week ✨";
 }
 
-/* FULL BADGE CATALOG FOR BADGES PAGE */
+/* FULL BADGE CATALOG */
 function buildBadgeCatalog(entries = [], summary = {}, streaks = {}) {
   const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date));
 
@@ -43,12 +43,10 @@ function buildBadgeCatalog(entries = [], summary = {}, streaks = {}) {
     (sum, e) => sum + (Number(e.treadmill_minutes) || 0),
     0
   );
-
   const totalTreadmillDistance = sorted.reduce(
     (sum, e) => sum + (Number(e.treadmill_distance_km) || 0),
     0
   );
-
   const treadmillGoalDays = sorted.filter(
     (e) => (Number(e.treadmill_minutes) || 0) >= TREADMILL_GOAL_MINUTES
   ).length;
@@ -69,9 +67,8 @@ function buildBadgeCatalog(entries = [], summary = {}, streaks = {}) {
       : 0;
 
   const weeklyConsistency = summary?.consistency_score ?? 0;
-  const loggedDaysThisWeek = (summary?.entries || []).filter(
-    (e) => e && e.date
-  ).length;
+  const loggedDaysThisWeek = (summary?.entries || []).filter((e) => e?.date)
+    .length;
 
   const longestStreak = streaks?.longest_gym_streak || 0;
   const currentStreak = streaks?.current_gym_streak || 0;
@@ -234,6 +231,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   registerServiceWorker();
   setupInstallPrompt();
+
+  document.querySelectorAll("button, .btn").forEach(rippleify);
 });
 
 /* TOAST */
@@ -258,7 +257,7 @@ function launchConfetti() {
   }
 }
 
-/* PWA INSTALL HANDLING */
+/* PWA INSTALL */
 function setupInstallPrompt() {
   const installCard = document.getElementById("install-card");
   const installButton = document.getElementById("install-btn");
@@ -267,19 +266,23 @@ function setupInstallPrompt() {
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     installPromptEvent = e;
+
     if (installCard) installCard.style.display = "block";
     if (navInstall) navInstall.style.display = "inline-flex";
   });
 
-  const handler = () => {
+  function handler() {
     if (!installPromptEvent) return;
+
     installPromptEvent.prompt();
+
     installPromptEvent.userChoice.finally(() => {
       installPromptEvent = null;
+
       if (installCard) installCard.style.display = "none";
       if (navInstall) navInstall.style.display = "none";
     });
-  };
+  }
 
   if (installButton) installButton.addEventListener("click", handler);
   if (navInstall) navInstall.addEventListener("click", handler);
@@ -304,15 +307,20 @@ function updateMoodBadge(value) {
 /* PROGRESS RING */
 function animateRing(el, percent) {
   if (!el) return;
+
   const deg = Math.min(100, percent) * 3.6;
-  el.style.background = `conic-gradient(var(--accent) ${deg}deg,
-                                       var(--accent-2) ${deg + 10}deg,
-                                       rgba(255,255,255,0.1) ${deg + 10}deg)`;
+
+  el.style.background = `conic-gradient(
+    var(--accent) ${deg}deg,
+    var(--accent-2) ${deg + 10}deg,
+    rgba(255,255,255,0.1) ${deg + 10}deg
+  )`;
+
   const text = el.querySelector("span");
   if (text) text.textContent = `${Math.round(percent)}%`;
 }
 
-/* BUTTON RIPPLE EFFECT */
+/* RIPPLE EFFECT */
 function rippleify(button) {
   button.addEventListener("click", (e) => {
     const circle = document.createElement("span");
@@ -344,7 +352,3 @@ function rippleify(button) {
     setTimeout(() => circle.remove(), 350);
   });
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll("button, .btn").forEach(rippleify);
-});

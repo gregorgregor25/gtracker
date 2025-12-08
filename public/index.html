@@ -8,6 +8,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
   <header>
     <nav class="nav">
@@ -22,6 +23,7 @@
         <a id="nav-profile" href="profile.html">Profile</a>
         <a id="nav-weight" href="weight.html">Weight</a>
       </div>
+
       <div class="actions">
         <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">🌙</button>
         <button id="nav-install" class="install-btn" style="display:none;">➕ Install</button>
@@ -50,6 +52,8 @@
     </div>
 
     <section class="grid two" style="margin-top:16px;">
+
+      <!-- TODAY CARD -->
       <div class="card" id="today-card">
         <div class="flex" style="justify-content: space-between;">
           <h2>Today</h2>
@@ -63,22 +67,27 @@
             <div>Gym calories 🔥</div>
             <strong id="stat-calories-gym">—</strong>
           </div>
+
           <div class="stat">
             <div>Treadmill calories 🔥</div>
             <strong id="stat-calories-tread">—</strong>
           </div>
+
           <div class="stat">
             <div>Total calories 🔥</div>
             <strong id="stat-calories-total">—</strong>
           </div>
+
           <div class="stat">
             <div>Carbs 🧪</div>
             <strong id="stat-carbs">—</strong>
           </div>
+
           <div class="stat">
             <div>Weight ⚖️</div>
             <strong id="stat-weight">—</strong>
           </div>
+
           <div class="stat">
             <div>Treadmill ⏱️</div>
             <strong id="stat-treadmill">—</strong>
@@ -93,6 +102,7 @@
         <div class="flex" style="margin-top:10px;" id="achievement-badges"></div>
       </div>
 
+      <!-- CONSISTENCY CARD -->
       <div class="card">
         <h2>Streaks & Consistency</h2>
 
@@ -101,6 +111,7 @@
             <div>Current streak</div>
             <strong id="current-streak">0</strong>
           </div>
+
           <div class="stat">
             <div>Best streak</div>
             <strong id="best-streak">0</strong>
@@ -121,6 +132,7 @@
         <div class="flex" id="badge-container"></div>
       </div>
 
+      <!-- DAILY ENERGY CARD -->
       <div class="card" id="energy-card">
         <div class="flex" style="justify-content: space-between;">
           <h2>Daily Energy</h2>
@@ -132,14 +144,27 @@
             <div>BMR</div>
             <strong id="stat-bmr">—</strong>
           </div>
+
           <div class="stat">
             <div>TDEE</div>
             <strong id="stat-tdee">—</strong>
           </div>
+
           <div class="stat">
             <div>Daily target</div>
             <strong id="stat-target">—</strong>
           </div>
+
+          <div class="stat">
+            <div>Calories eaten</div>
+            <strong id="stat-consumed">—</strong>
+          </div>
+
+          <div class="stat">
+            <div>Calories burned</div>
+            <strong id="stat-burned">—</strong>
+          </div>
+
           <div class="stat">
             <div>Net calories today</div>
             <strong id="stat-net">—</strong>
@@ -148,6 +173,7 @@
 
         <p class="muted" id="energy-note"></p>
       </div>
+
     </section>
 
     <section class="grid two" style="margin-top:16px;">
@@ -170,6 +196,7 @@
         <button id="install-btn" class="install-btn">Install GTracker</button>
       </div>
     </section>
+
   </main>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>

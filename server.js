@@ -8,28 +8,36 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Helper to format date as YYYY-MM-DD
+// Helper to format date as YYYY-MM-DD in local time
 function todayString() {
   const now = new Date();
-  return [
-    now.getFullYear(),
-    String(now.getMonth() + 1).padStart(2, '0'),
-    String(now.getDate()).padStart(2, '0')
-  ].join('-');
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 function normalizeEntry(payload) {
   const toInt = (value) => {
     if (value === undefined || value === null || value === '') return null;
-    const num = parseInt(value, 10);
-    return isNaN(num) ? null : num;
+    const n = parseInt(value, 10);
+    return isNaN(n) ? null : n;
   };
 
   const toFloat = (value) => {
     if (value === undefined || value === null || value === '') return null;
-    const num = parseFloat(value);
-    return isNaN(num) ? null : num;
+    const n = parseFloat(value);
+    return isNaN(n) ? null : n;
   };
+
+  const gym = toInt(payload.calories_gym) ?? 0;
+  const tread = toInt(payload.calories_treadmill) ?? 0;
+  const burnedFallback = gym + tread;
+
+  const calories_total =
+    burnedFallback ||
+    toInt(payload.calories_burned) ||
+    0;
 
   return {
     date: payload.date || todayString(),
@@ -37,18 +45,15 @@ function normalizeEntry(payload) {
     treadmill_minutes: toInt(payload.treadmill_minutes) || 0,
     treadmill_distance_km: toFloat(payload.treadmill_distance_km),
 
-    // Expanded calorie model
-    calories_gym: toInt(payload.calories_gym) ?? 0,
-    calories_treadmill: toInt(payload.calories_treadmill) ?? 0,
-    calories_total:
-      (toInt(payload.calories_gym) ?? 0) +
-      (toInt(payload.calories_treadmill) ?? 0) ||
-      toInt(payload.calories_burned) ||
-      0,
+    calories_gym: gym,
+    calories_treadmill: tread,
+    calories_total,
 
     calories_burned:
-      toInt(payload.calories_burned) ||
-      ((toInt(payload.calories_gym) ?? 0) + (toInt(payload.calories_treadmill) ?? 0) || 0),
+      toInt(payload.calories_burned) ??
+      burnedFallback,
+
+    calories_consumed: toInt(payload.calories_consumed),
 
     carbs: toInt(payload.carbs) || 0,
     weight_kg: toFloat(payload.weight_kg),
@@ -57,16 +62,25 @@ function normalizeEntry(payload) {
   };
 }
 
-// Create or update an entry for a date
+// UPSERT ENTRY
 async function upsertEntry(entry) {
   const existing = await get('SELECT id FROM entries WHERE date = ?', [entry.date]);
 
   if (existing) {
     await run(
-      `UPDATE entries 
-       SET gym_done=?, treadmill_minutes=?, treadmill_distance_km=?, 
-           calories_gym=?, calories_treadmill=?, calories_total=?, calories_burned=?, 
-           carbs=?, weight_kg=?, mood=?, notes=? 
+      `UPDATE entries SET 
+         gym_done=?,
+         treadmill_minutes=?, 
+         treadmill_distance_km=?,
+         calories_gym=?,
+         calories_treadmill=?,
+         calories_total=?,
+         calories_burned=?,
+         calories_consumed=?,
+         carbs=?,
+         weight_kg=?,
+         mood=?,
+         notes=?
        WHERE date=?`,
       [
         entry.gym_done,
@@ -75,12 +89,13 @@ async function upsertEntry(entry) {
         entry.calories_gym,
         entry.calories_treadmill,
         entry.calories_total,
-        entry.calories_total, // burned fallback
+        entry.calories_burned,
+        entry.calories_consumed,
         entry.carbs,
         entry.weight_kg,
         entry.mood,
         entry.notes,
-        entry.date
+        entry.date,
       ]
     );
     return { ...entry, id: existing.id };
@@ -89,9 +104,9 @@ async function upsertEntry(entry) {
   const result = await run(
     `INSERT INTO entries 
      (date, gym_done, treadmill_minutes, treadmill_distance_km,
-      calories_gym, calories_treadmill, calories_total, calories_burned,
+      calories_gym, calories_treadmill, calories_total, calories_burned, calories_consumed,
       carbs, weight_kg, mood, notes)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       entry.date,
       entry.gym_done,
@@ -100,20 +115,19 @@ async function upsertEntry(entry) {
       entry.calories_gym,
       entry.calories_treadmill,
       entry.calories_total,
-      entry.calories_total,
+      entry.calories_burned,
+      entry.calories_consumed,
       entry.carbs,
       entry.weight_kg,
       entry.mood,
-      entry.notes
+      entry.notes,
     ]
   );
 
   return { ...entry, id: result.lastID };
 }
 
-/* -----------------------
-   ROUTES
------------------------- */
+/* ROUTES */
 
 app.get('/api/entries', async (_req, res) => {
   try {
@@ -124,15 +138,13 @@ app.get('/api/entries', async (_req, res) => {
   }
 });
 
-// Fetch today's entry (create if none exists)
 app.get('/api/entries/today', async (_req, res) => {
   try {
     const today = todayString();
     let entry = await get('SELECT * FROM entries WHERE date = ?', [today]);
 
     if (!entry) {
-      const blank = normalizeEntry({ date: today });
-      entry = await upsertEntry(blank);
+      entry = await upsertEntry(normalizeEntry({ date: today }));
     }
 
     res.json(entry);
@@ -141,44 +153,39 @@ app.get('/api/entries/today', async (_req, res) => {
   }
 });
 
-// Create or update
 app.post('/api/entries', async (req, res) => {
   try {
-    const entry = normalizeEntry(req.body || {});
-    const saved = await upsertEntry(entry);
+    const saved = await upsertEntry(normalizeEntry(req.body || {}));
     res.json(saved);
   } catch (err) {
     res.status(500).json({ error: 'Failed to save entry' });
   }
 });
 
-/* -----------------------
-   DEBUG ROUTES
------------------------- */
+/* DEBUG — FAKE DATA */
 
 app.post('/api/debug/generate-fake', async (req, res) => {
   try {
     const moods = ['low', 'ok', 'good', 'great'];
     const days = Math.max(1, parseInt(req.body?.days, 10) || 90);
-
     const today = new Date();
     let baseWeight = 110;
-    let created = 0;
 
+    let count = 0;
     for (let i = 0; i < days; i++) {
       const d = new Date(today);
       d.setDate(today.getDate() - i);
       const dateStr = d.toISOString().slice(0, 10);
 
       const gymDone = Math.random() < 0.5;
-
-      const treadmillMinutes = Math.random() < 0.4 ? 0 : Math.floor(Math.random() * 61);
+      const treadmillMinutes = Math.random() < 0.4 ? 0 : Math.floor(Math.random() * 60);
       const treadmillDistance = Math.random() < 0.4 ? 0 : parseFloat((Math.random() * 3).toFixed(2));
 
-      const caloriesGym = gymDone ? Math.floor(Math.random() * 351) : 0;
-      const caloriesTreadmill = treadmillMinutes ? Math.floor(Math.random() * 251) : 0;
+      const caloriesGym = gymDone ? Math.floor(Math.random() * 350) : 0;
+      const caloriesTreadmill = treadmillMinutes ? Math.floor(Math.random() * 250) : 0;
 
-      const carbs = Math.floor(Math.random() * 201);
+      const caloriesConsumed = 1200 + Math.floor(Math.random() * 2301);
+      const carbs = Math.floor(Math.random() * 200);
 
       const weight = baseWeight + (Math.random() - 0.5) * 5;
       baseWeight = weight;
@@ -190,40 +197,38 @@ app.post('/api/debug/generate-fake', async (req, res) => {
         treadmill_distance_km: treadmillDistance,
         calories_gym: caloriesGym,
         calories_treadmill: caloriesTreadmill,
+        calories_consumed: caloriesConsumed,
         carbs,
         weight_kg: parseFloat(weight.toFixed(1)),
         mood: moods[Math.floor(Math.random() * moods.length)],
-        notes: ''
       });
 
       await upsertEntry(entry);
-      created++;
+      count++;
     }
 
-    res.json({ ok: true, count: created });
-  } catch (err) {
+    res.json({ ok: true, count });
+  } catch {
     res.status(500).json({ error: 'Failed to generate fake data' });
   }
 });
 
-// Reset all entries
+/* DEBUG — RESET */
+
 app.post('/api/debug/reset', async (_req, res) => {
   try {
     await run('DELETE FROM entries');
     res.json({ ok: true });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to reset entries' });
   }
 });
 
-/* -----------------------
-   WEEKLY SUMMARY
------------------------- */
+/* WEEKLY SUMMARY WITH CALORIES_CONSUMED */
 
 app.get('/api/summary/week', async (_req, res) => {
   try {
     const today = todayString();
-
     const startDate = new Date(today);
     startDate.setDate(startDate.getDate() - 6);
     const start = startDate.toISOString().slice(0, 10);
@@ -234,79 +239,87 @@ app.get('/api/summary/week', async (_req, res) => {
     );
 
     const days = entries.length || 1;
-    const gymDays = entries.filter((e) => e.gym_done === 1).length;
+
+    const gymDays = entries.filter(e => e.gym_done === 1).length;
     const treadmillMinutes = entries.reduce((s, e) => s + (e.treadmill_minutes || 0), 0);
-    const treadmillDays = entries.filter((e) => (e.treadmill_minutes || 0) > 0).length;
+    const treadmillDays = entries.filter(e => (e.treadmill_minutes || 0) > 0).length;
 
-    const avgCarbs = Math.round(entries.reduce((s, e) => s + (e.carbs || 0), 0) / days);
+    const totalCalories = entries.reduce(
+      (s, e) => s + (e.calories_total ?? e.calories_burned ?? 0),
+      0
+    );
 
-    const weightValues = entries
-      .map((e) => e.weight_kg)
-      .filter((v) => v !== null && v !== undefined);
+    const totalCaloriesConsumed = entries.reduce(
+      (s, e) => s + (e.calories_consumed || 0),
+      0
+    );
+
+    const avgCaloriesConsumed = Math.round(totalCaloriesConsumed / days);
+
+    const avgCarbs = Math.round(
+      entries.reduce((s, e) => s + (e.carbs || 0), 0) / days
+    );
+
+    const weights = entries
+      .map(e => e.weight_kg)
+      .filter(v => v !== null && v !== undefined);
+
     const avgWeight =
-      weightValues.length
-        ? parseFloat((weightValues.reduce((a, b) => a + b, 0) / weightValues.length).toFixed(1))
+      weights.length
+        ? parseFloat((weights.reduce((a, b) => a + b, 0) / weights.length).toFixed(1))
         : null;
 
     const gymPercent = (gymDays / days) * 100;
     const treadmillPercent = (treadmillDays / days) * 100;
 
-    const consistency = Math.max(
-      0,
-      Math.min(100, Math.round(gymPercent * 0.6 + treadmillPercent * 0.4))
-    );
-
-    const totalCalories = entries.reduce(
-      (sum, e) => sum + (e.calories_total ?? e.calories_burned ?? 0),
-      0
+    const consistency_score = Math.min(
+      100,
+      Math.max(0, Math.round(gymPercent * 0.6 + treadmillPercent * 0.4))
     );
 
     res.json({
       start,
       end: today,
+      entries,
       gym_days: gymDays,
+      treadmill_days: treadmillDays,
       total_treadmill_minutes: treadmillMinutes,
       total_calories: totalCalories,
+      total_calories_consumed: totalCaloriesConsumed,
+      avg_calories_consumed: avgCaloriesConsumed,
       avg_carbs: avgCarbs,
       avg_weight: avgWeight,
-      consistency_score: consistency,
-      treadmill_days: treadmillDays,
-      entries
+      consistency_score
     });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to calculate weekly summary' });
   }
 });
 
-/* -----------------------
-   PROFILE & GOAL CALCULATIONS
------------------------- */
+/* PROFILE */
 
 function defaultProfile() {
-  return { age: 30, sex: 'male', height_cm: 175, goal_weight: 80, activity_level: 'moderate' };
+  return {
+    age: 30,
+    sex: 'male',
+    height_cm: 175,
+    goal_weight: 80,
+    activity_level: 'moderate',
+  };
 }
 
 async function fetchProfile() {
-  const profile = await get('SELECT * FROM profile LIMIT 1');
-  return profile || defaultProfile();
+  const p = await get('SELECT * FROM profile LIMIT 1');
+  return p || defaultProfile();
 }
 
-function sanitizeProfile(body = {}) {
-  const toInt = (value) => {
-    if (value === undefined || value === null || value === '') return null;
-    const num = parseInt(value, 10);
-    return Number.isNaN(num) ? null : num;
-  };
+function sanitizeProfile(body) {
+  const toInt = (v) => (v === '' || v === null ? null : parseInt(v, 10));
+  const toFloat = (v) => (v === '' || v === null ? null : parseFloat(v));
 
-  const toFloat = (value) => {
-    if (value === undefined || value === null || value === '') return null;
-    const num = parseFloat(value);
-    return Number.isNaN(num) ? null : num;
-  };
-
-  const allowedActivity = ['sedentary', 'light', 'moderate', 'active'];
-  const allowedSex = ['male', 'female'];
   const defaults = defaultProfile();
+  const allowedSex = ['male', 'female'];
+  const allowedActivity = ['sedentary', 'light', 'moderate', 'active'];
 
   return {
     age: toInt(body.age) ?? defaults.age,
@@ -321,68 +334,53 @@ function sanitizeProfile(body = {}) {
 
 app.get('/api/profile', async (_req, res) => {
   try {
-    const profile = await fetchProfile();
-    res.json(profile);
-  } catch (err) {
+    res.json(await fetchProfile());
+  } catch {
     res.status(500).json({ error: 'Failed to load profile' });
   }
 });
 
 app.post('/api/profile', async (req, res) => {
   try {
-    const sanitized = sanitizeProfile(req.body || {});
+    const p = sanitizeProfile(req.body);
     const existing = await get('SELECT id FROM profile LIMIT 1');
 
     if (existing) {
       await run(
         'UPDATE profile SET age=?, sex=?, height_cm=?, goal_weight=?, activity_level=? WHERE id=?',
-        [
-          sanitized.age,
-          sanitized.sex,
-          sanitized.height_cm,
-          sanitized.goal_weight,
-          sanitized.activity_level,
-          existing.id
-        ]
+        [p.age, p.sex, p.height_cm, p.goal_weight, p.activity_level, existing.id]
       );
     } else {
       await run(
         'INSERT INTO profile (age, sex, height_cm, goal_weight, activity_level) VALUES (?, ?, ?, ?, ?)',
-        [
-          sanitized.age,
-          sanitized.sex,
-          sanitized.height_cm,
-          sanitized.goal_weight,
-          sanitized.activity_level
-        ]
+        [p.age, p.sex, p.height_cm, p.goal_weight, p.activity_level]
       );
     }
 
-    const saved = await fetchProfile();
-    res.json(saved);
-  } catch (err) {
+    res.json(await fetchProfile());
+  } catch {
     res.status(500).json({ error: 'Failed to save profile' });
   }
 });
 
+/* DAILY GOAL */
+
 function calculateBMR(profile, weight) {
-  const age = profile.age || 0;
-  const height = profile.height_cm || 0;
-  if (!weight) return 0;
-  if ((profile.sex || 'male') === 'female') {
-    return 10 * weight + 6.25 * height - 5 * age - 161;
-  }
-  return 10 * weight + 6.25 * height - 5 * age + 5;
+  const age = profile.age;
+  const height = profile.height_cm;
+
+  return profile.sex === 'female'
+    ? 10 * weight + 6.25 * height - 5 * age - 161
+    : 10 * weight + 6.25 * height - 5 * age + 5;
 }
 
 function activityMultiplier(level) {
-  switch (level) {
-    case 'sedentary': return 1.2;
-    case 'light': return 1.375;
-    case 'moderate': return 1.55;
-    case 'active': return 1.725;
-    default: return 1.2;
-  }
+  return {
+    sedentary: 1.2,
+    light: 1.375,
+    moderate: 1.55,
+    active: 1.725,
+  }[level] || 1.2;
 }
 
 async function latestWeight() {
@@ -404,37 +402,38 @@ function totalBurned(entry) {
 app.get('/api/summary/daily-goal', async (_req, res) => {
   try {
     const profile = await fetchProfile();
-    const weight = (await latestWeight()) ?? profile.goal_weight ?? 0;
+    const weight = (await latestWeight()) ?? profile.goal_weight;
 
     const bmr = calculateBMR(profile, weight);
     const tdee = bmr * activityMultiplier(profile.activity_level);
-    const recommended = Math.max(0, Math.round(tdee - 500));
+    const recommended = Math.round(Math.max(0, tdee - 500));
 
     const todayEntry = await get(
-      'SELECT calories_total, calories_burned, calories_gym, calories_treadmill FROM entries WHERE date = ?',
+      'SELECT calories_total, calories_burned, calories_gym, calories_treadmill, calories_consumed FROM entries WHERE date=?',
       [todayString()]
     );
 
-    const todayTotal = totalBurned(todayEntry);
-    const netCalories = recommended - todayTotal;
+    const burned = totalBurned(todayEntry);
+    const consumed = todayEntry?.calories_consumed ?? 0;
+    const net = consumed - burned;
 
     res.json({
       bmr: Math.round(bmr),
       tdee: Math.round(tdee),
       recommended_calories: recommended,
       profile,
-      latest_weight: weight || null,
-      today_total_burned: todayTotal,
-      net_calories: netCalories
+      latest_weight: weight,
+      today_total_burned: burned,
+      calories_consumed: consumed,
+      calories_burned: burned,
+      net_calories: net,
     });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to calculate daily goal' });
   }
 });
 
-/* -----------------------
-   STREAKS
------------------------- */
+/* STREAKS */
 
 function parseDate(str) {
   const [y, m, d] = str.split('-').map(Number);
@@ -448,21 +447,20 @@ app.get('/api/summary/streaks', async (_req, res) => {
     let longest = 0;
     let current = 0;
 
-    // Compute longest streak
     for (let i = 0; i < entries.length; i++) {
       if (entries[i].gym_done === 1) {
         current = 1;
-        let j = i - 1;
         let prev = parseDate(entries[i].date);
+        let j = i - 1;
 
         while (j >= 0) {
-          const candidate = entries[j];
-          if (candidate.gym_done !== 1) break;
+          const e = entries[j];
+          if (e.gym_done !== 1) break;
 
-          const diff = (prev - parseDate(candidate.date)) / 86400000;
+          const diff = (prev - parseDate(e.date)) / 86400000;
           if (diff === 1) {
             current++;
-            prev = parseDate(candidate.date);
+            prev = parseDate(e.date);
             j--;
           } else break;
         }
@@ -471,34 +469,30 @@ app.get('/api/summary/streaks', async (_req, res) => {
       }
     }
 
-    // Compute streak ending today
     const today = todayString();
     const reversed = [...entries].reverse();
-
     let ongoing = 0;
     let expected = parseDate(today);
 
-    for (const entry of reversed) {
-      const d = parseDate(entry.date);
+    for (const e of reversed) {
+      const d = parseDate(e.date);
       const diff = (expected - d) / 86400000;
 
-      if ((diff === 0 || diff === 1) && entry.gym_done === 1) {
+      if ((diff === 0 || diff === 1) && e.gym_done === 1) {
         ongoing++;
         expected.setDate(expected.getDate() - 1);
-      } else {
-        break;
-      }
+      } else break;
     }
 
     res.json({
       current_gym_streak: ongoing,
-      longest_gym_streak: longest
+      longest_gym_streak: longest,
     });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to calculate streaks' });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`Health tracker server running on http://localhost:${PORT}`);
+  console.log(`Health tracker running on http://localhost:${PORT}`);
 });
