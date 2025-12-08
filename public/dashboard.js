@@ -30,15 +30,18 @@ async function loadToday() {
       gymBadge.classList.remove('success');
     }
 
-    document.getElementById('stat-calories').textContent = entry.calories_burned || 0;
+    const caloriesGym = entry.calories_gym ?? 0;
+    const caloriesTread = entry.calories_treadmill ?? 0;
+    const caloriesTotal = entry.calories_total ?? entry.calories_burned ?? (caloriesGym + caloriesTread);
+    document.getElementById('stat-calories-gym').textContent = caloriesGym;
+    document.getElementById('stat-calories-tread').textContent = caloriesTread;
+    document.getElementById('stat-calories-total').textContent = caloriesTotal;
+
     document.getElementById('stat-carbs').textContent = entry.carbs || 0;
     document.getElementById('stat-weight').textContent = formatNumber(entry.weight_kg, 1);
     document.getElementById('stat-treadmill').textContent = entry.treadmill_minutes || 0;
 
-    const progress = Math.min(
-      100,
-      Math.round(((entry.treadmill_minutes || 0) / TREADMILL_GOAL) * 100)
-    );
+    const progress = Math.min(100, Math.round(((entry.treadmill_minutes || 0) / TREADMILL_GOAL) * 100));
     document.getElementById('treadmill-progress').style.width = `${progress}%`;
     animateRing(document.getElementById('treadmill-ring'), progress);
 
@@ -58,32 +61,28 @@ async function loadToday() {
     localStorage.setItem('gtracker-lastGym', !!entry.gym_done);
     localStorage.setItem('gtracker-lastTreadGoal', entry.treadmill_minutes >= TREADMILL_GOAL);
   } catch (err) {
-    document.getElementById('today-message').textContent =
-      "Unable to load today's data";
+    document.getElementById('today-message').textContent = "Unable to load today's data";
   }
 }
 
 async function loadSummary() {
   try {
-    const [summary, streaks] = await Promise.all([
+    const [summary, streaks, entries, dailyGoal] = await Promise.all([
       fetchJSON('/api/summary/week'),
       fetchJSON('/api/summary/streaks'),
+      fetchJSON('/api/entries'),
+      fetchJSON('/api/summary/daily-goal'),
     ]);
 
-    document.getElementById('current-streak').textContent =
-      streaks.current_gym_streak;
-    document.getElementById('best-streak').textContent =
-      streaks.longest_gym_streak;
-    document.getElementById('streak-ribbon').textContent =
-      `${streaks.current_gym_streak}-day streak`;
+    document.getElementById('current-streak').textContent = streaks.current_gym_streak;
+    document.getElementById('best-streak').textContent = streaks.longest_gym_streak;
+    document.getElementById('streak-ribbon').textContent = `${streaks.current_gym_streak}-day streak`;
 
     const score = summary.consistency_score;
     document.getElementById('consistency-score').textContent = score;
-    document.getElementById('consistency-label').textContent =
-      motivationalText(score);
+    document.getElementById('consistency-label').textContent = motivationalText(score);
     document.getElementById('consistency-progress').style.width = `${score}%`;
-    document.getElementById('motivation-heading').textContent =
-      motivationalText(score);
+    document.getElementById('motivation-heading').textContent = motivationalText(score);
 
     const badgeContainer = document.getElementById('badge-container');
     badgeContainer.innerHTML = '';
@@ -94,14 +93,22 @@ async function loadSummary() {
       badgeContainer.appendChild(span);
     });
 
+    const badgeCatalog = buildBadgeCatalog(entries, summary, streaks);
+    const unlocked = badgeCatalog.filter((b) => b.achieved).slice(0, 3);
+    if (unlocked.length) {
+      unlocked.forEach((badge) => {
+        const chip = document.createElement('span');
+        chip.className = 'badge subtle';
+        chip.textContent = `${badge.icon} ${badge.title}`;
+        badgeContainer.appendChild(chip);
+      });
+    }
+
     const achievementArea = document.getElementById('achievement-badges');
     achievementArea.innerHTML = '';
-    if (streaks.current_gym_streak >= 5)
-      addAchievement(achievementArea, '🏆', '5-day streak');
-    if (summary.treadmill_days >= 3)
-      addAchievement(achievementArea, '🚶‍♂️', '3 treadmill sessions');
-    if ((summary.entries || []).length >= 7)
-      addAchievement(achievementArea, '🗓️', 'Logged every day this week');
+    if (streaks.current_gym_streak >= 5) addAchievement(achievementArea, '🏆', '5-day streak');
+    if (summary.treadmill_days >= 3) addAchievement(achievementArea, '🚶‍♂️', '3 treadmill sessions');
+    if ((summary.entries || []).length >= 7) addAchievement(achievementArea, '🗓️', 'Logged every day this week');
 
     const storedBest = Number(localStorage.getItem('gtracker-bestStreak') || 0);
     if (streaks.longest_gym_streak > storedBest) {
@@ -109,9 +116,33 @@ async function loadSummary() {
       launchConfetti();
       localStorage.setItem('gtracker-bestStreak', streaks.longest_gym_streak);
     }
+
+    const remaining = Math.round(dailyGoal.net_calories || 0);
+    const target = Math.round(dailyGoal.recommended_calories || 0);
+    const burnedToday = Math.round(dailyGoal.today_total_burned || 0);
+    document.getElementById('stat-bmr').textContent = Math.round(dailyGoal.bmr || 0);
+    document.getElementById('stat-tdee').textContent = Math.round(dailyGoal.tdee || 0);
+    document.getElementById('stat-target').textContent = target;
+    document.getElementById('stat-net').textContent = remaining;
+
+    const netStatus = document.getElementById('net-status');
+    netStatus.classList.remove('success', 'danger');
+    if (remaining >= 0) {
+      netStatus.textContent = 'On track';
+      netStatus.classList.add('success');
+      document.getElementById('energy-note').textContent = `Target: ${target} kcal • Burned: ${burnedToday} kcal • Remaining: ${remaining} kcal.`;
+    } else {
+      netStatus.textContent = 'Above target';
+      netStatus.classList.add('danger');
+      document.getElementById('energy-note').textContent = `Target: ${target} kcal • Burned: ${burnedToday} kcal • Over by ${Math.abs(remaining)} kcal.`;
+    }
   } catch (err) {
-    document.getElementById('consistency-label').textContent =
-      'Unable to load summary';
+    document.getElementById('consistency-label').textContent = 'Unable to load summary';
+    const netStatus = document.getElementById('net-status');
+    if (netStatus) {
+      netStatus.textContent = 'Unavailable';
+      netStatus.classList.add('danger');
+    }
   }
 }
 

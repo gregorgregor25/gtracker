@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Helper: format date as YYYY-MM-DD
+// Helper to format date as YYYY-MM-DD
 function todayString() {
   const now = new Date();
   return [
@@ -19,15 +19,37 @@ function todayString() {
 }
 
 function normalizeEntry(payload) {
-  const toInt = (v) => (v === '' || v === null || v === undefined ? null : (isNaN(parseInt(v)) ? null : parseInt(v)));
-  const toFloat = (v) => (v === '' || v === null || v === undefined ? null : (isNaN(parseFloat(v)) ? null : parseFloat(v)));
+  const toInt = (value) => {
+    if (value === undefined || value === null || value === '') return null;
+    const num = parseInt(value, 10);
+    return isNaN(num) ? null : num;
+  };
+
+  const toFloat = (value) => {
+    if (value === undefined || value === null || value === '') return null;
+    const num = parseFloat(value);
+    return isNaN(num) ? null : num;
+  };
 
   return {
     date: payload.date || todayString(),
     gym_done: payload.gym_done ? 1 : 0,
     treadmill_minutes: toInt(payload.treadmill_minutes) || 0,
     treadmill_distance_km: toFloat(payload.treadmill_distance_km),
-    calories_burned: toInt(payload.calories_burned) || 0,
+
+    // Expanded calorie model
+    calories_gym: toInt(payload.calories_gym) ?? 0,
+    calories_treadmill: toInt(payload.calories_treadmill) ?? 0,
+    calories_total:
+      (toInt(payload.calories_gym) ?? 0) +
+      (toInt(payload.calories_treadmill) ?? 0) ||
+      toInt(payload.calories_burned) ||
+      0,
+
+    calories_burned:
+      toInt(payload.calories_burned) ||
+      ((toInt(payload.calories_gym) ?? 0) + (toInt(payload.calories_treadmill) ?? 0) || 0),
+
     carbs: toInt(payload.carbs) || 0,
     weight_kg: toFloat(payload.weight_kg),
     mood: payload.mood || null,
@@ -35,40 +57,54 @@ function normalizeEntry(payload) {
   };
 }
 
+// Create or update an entry for a date
 async function upsertEntry(entry) {
   const existing = await get('SELECT id FROM entries WHERE date = ?', [entry.date]);
 
   if (existing) {
     await run(
-      `UPDATE entries SET gym_done=?, treadmill_minutes=?, treadmill_distance_km=?, calories_burned=?, carbs=?, weight_kg=?, mood=?, notes=? WHERE date=?`,
+      `UPDATE entries 
+       SET gym_done=?, treadmill_minutes=?, treadmill_distance_km=?, 
+           calories_gym=?, calories_treadmill=?, calories_total=?, calories_burned=?, 
+           carbs=?, weight_kg=?, mood=?, notes=? 
+       WHERE date=?`,
       [
         entry.gym_done,
         entry.treadmill_minutes,
         entry.treadmill_distance_km,
-        entry.calories_burned,
+        entry.calories_gym,
+        entry.calories_treadmill,
+        entry.calories_total,
+        entry.calories_total, // burned fallback
         entry.carbs,
         entry.weight_kg,
         entry.mood,
         entry.notes,
-        entry.date,
+        entry.date
       ]
     );
     return { ...entry, id: existing.id };
   }
 
   const result = await run(
-    `INSERT INTO entries (date, gym_done, treadmill_minutes, treadmill_distance_km, calories_burned, carbs, weight_kg, mood, notes)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO entries 
+     (date, gym_done, treadmill_minutes, treadmill_distance_km,
+      calories_gym, calories_treadmill, calories_total, calories_burned,
+      carbs, weight_kg, mood, notes)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       entry.date,
       entry.gym_done,
       entry.treadmill_minutes,
       entry.treadmill_distance_km,
-      entry.calories_burned,
+      entry.calories_gym,
+      entry.calories_treadmill,
+      entry.calories_total,
+      entry.calories_total,
       entry.carbs,
       entry.weight_kg,
       entry.mood,
-      entry.notes,
+      entry.notes
     ]
   );
 
@@ -79,13 +115,11 @@ async function upsertEntry(entry) {
    ROUTES
 ------------------------ */
 
-// Fetch all entries
 app.get('/api/entries', async (_req, res) => {
   try {
-    const rows = await all('SELECT * FROM entries ORDER BY date ASC');
-    res.json(rows);
+    const entries = await all('SELECT * FROM entries ORDER BY date ASC');
+    res.json(entries);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: 'Failed to fetch entries' });
   }
 });
@@ -103,19 +137,17 @@ app.get('/api/entries/today', async (_req, res) => {
 
     res.json(entry);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: "Failed to fetch today's entry" });
   }
 });
 
-// Create or update entry
+// Create or update
 app.post('/api/entries', async (req, res) => {
   try {
     const entry = normalizeEntry(req.body || {});
     const saved = await upsertEntry(entry);
     res.json(saved);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: 'Failed to save entry' });
   }
 });
@@ -124,7 +156,6 @@ app.post('/api/entries', async (req, res) => {
    DEBUG ROUTES
 ------------------------ */
 
-// Generate fake data
 app.post('/api/debug/generate-fake', async (req, res) => {
   try {
     const moods = ['low', 'ok', 'good', 'great'];
@@ -140,9 +171,13 @@ app.post('/api/debug/generate-fake', async (req, res) => {
       const dateStr = d.toISOString().slice(0, 10);
 
       const gymDone = Math.random() < 0.5;
+
       const treadmillMinutes = Math.random() < 0.4 ? 0 : Math.floor(Math.random() * 61);
       const treadmillDistance = Math.random() < 0.4 ? 0 : parseFloat((Math.random() * 3).toFixed(2));
-      const calories = Math.floor(Math.random() * 501);
+
+      const caloriesGym = gymDone ? Math.floor(Math.random() * 351) : 0;
+      const caloriesTreadmill = treadmillMinutes ? Math.floor(Math.random() * 251) : 0;
+
       const carbs = Math.floor(Math.random() * 201);
 
       const weight = baseWeight + (Math.random() - 0.5) * 5;
@@ -153,11 +188,12 @@ app.post('/api/debug/generate-fake', async (req, res) => {
         gym_done: gymDone,
         treadmill_minutes: treadmillMinutes,
         treadmill_distance_km: treadmillDistance,
-        calories_burned: calories,
+        calories_gym: caloriesGym,
+        calories_treadmill: caloriesTreadmill,
         carbs,
         weight_kg: parseFloat(weight.toFixed(1)),
         mood: moods[Math.floor(Math.random() * moods.length)],
-        notes: '',
+        notes: ''
       });
 
       await upsertEntry(entry);
@@ -166,7 +202,6 @@ app.post('/api/debug/generate-fake', async (req, res) => {
 
     res.json({ ok: true, count: created });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: 'Failed to generate fake data' });
   }
 });
@@ -177,7 +212,6 @@ app.post('/api/debug/reset', async (_req, res) => {
     await run('DELETE FROM entries');
     res.json({ ok: true });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: 'Failed to reset entries' });
   }
 });
@@ -189,6 +223,7 @@ app.post('/api/debug/reset', async (_req, res) => {
 app.get('/api/summary/week', async (_req, res) => {
   try {
     const today = todayString();
+
     const startDate = new Date(today);
     startDate.setDate(startDate.getDate() - 6);
     const start = startDate.toISOString().slice(0, 10);
@@ -208,29 +243,192 @@ app.get('/api/summary/week', async (_req, res) => {
     const weightValues = entries
       .map((e) => e.weight_kg)
       .filter((v) => v !== null && v !== undefined);
-
     const avgWeight =
-      weightValues.length ? parseFloat((weightValues.reduce((a, b) => a + b, 0) / weightValues.length).toFixed(1)) : null;
+      weightValues.length
+        ? parseFloat((weightValues.reduce((a, b) => a + b, 0) / weightValues.length).toFixed(1))
+        : null;
 
     const gymPercent = (gymDays / days) * 100;
     const treadmillPercent = (treadmillDays / days) * 100;
 
-    const consistency = Math.round(gymPercent * 0.6 + treadmillPercent * 0.4);
+    const consistency = Math.max(
+      0,
+      Math.min(100, Math.round(gymPercent * 0.6 + treadmillPercent * 0.4))
+    );
+
+    const totalCalories = entries.reduce(
+      (sum, e) => sum + (e.calories_total ?? e.calories_burned ?? 0),
+      0
+    );
 
     res.json({
       start,
       end: today,
       gym_days: gymDays,
       total_treadmill_minutes: treadmillMinutes,
+      total_calories: totalCalories,
       avg_carbs: avgCarbs,
       avg_weight: avgWeight,
-      consistency_score: Math.max(0, Math.min(100, consistency)),
+      consistency_score: consistency,
       treadmill_days: treadmillDays,
-      entries,
+      entries
     });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: 'Failed to calculate weekly summary' });
+  }
+});
+
+/* -----------------------
+   PROFILE & GOAL CALCULATIONS
+------------------------ */
+
+function defaultProfile() {
+  return { age: 30, sex: 'male', height_cm: 175, goal_weight: 80, activity_level: 'moderate' };
+}
+
+async function fetchProfile() {
+  const profile = await get('SELECT * FROM profile LIMIT 1');
+  return profile || defaultProfile();
+}
+
+function sanitizeProfile(body = {}) {
+  const toInt = (value) => {
+    if (value === undefined || value === null || value === '') return null;
+    const num = parseInt(value, 10);
+    return Number.isNaN(num) ? null : num;
+  };
+
+  const toFloat = (value) => {
+    if (value === undefined || value === null || value === '') return null;
+    const num = parseFloat(value);
+    return Number.isNaN(num) ? null : num;
+  };
+
+  const allowedActivity = ['sedentary', 'light', 'moderate', 'active'];
+  const allowedSex = ['male', 'female'];
+  const defaults = defaultProfile();
+
+  return {
+    age: toInt(body.age) ?? defaults.age,
+    sex: allowedSex.includes(body.sex) ? body.sex : defaults.sex,
+    height_cm: toInt(body.height_cm) ?? defaults.height_cm,
+    goal_weight: toFloat(body.goal_weight) ?? defaults.goal_weight,
+    activity_level: allowedActivity.includes(body.activity_level)
+      ? body.activity_level
+      : defaults.activity_level,
+  };
+}
+
+app.get('/api/profile', async (_req, res) => {
+  try {
+    const profile = await fetchProfile();
+    res.json(profile);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load profile' });
+  }
+});
+
+app.post('/api/profile', async (req, res) => {
+  try {
+    const sanitized = sanitizeProfile(req.body || {});
+    const existing = await get('SELECT id FROM profile LIMIT 1');
+
+    if (existing) {
+      await run(
+        'UPDATE profile SET age=?, sex=?, height_cm=?, goal_weight=?, activity_level=? WHERE id=?',
+        [
+          sanitized.age,
+          sanitized.sex,
+          sanitized.height_cm,
+          sanitized.goal_weight,
+          sanitized.activity_level,
+          existing.id
+        ]
+      );
+    } else {
+      await run(
+        'INSERT INTO profile (age, sex, height_cm, goal_weight, activity_level) VALUES (?, ?, ?, ?, ?)',
+        [
+          sanitized.age,
+          sanitized.sex,
+          sanitized.height_cm,
+          sanitized.goal_weight,
+          sanitized.activity_level
+        ]
+      );
+    }
+
+    const saved = await fetchProfile();
+    res.json(saved);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save profile' });
+  }
+});
+
+function calculateBMR(profile, weight) {
+  const age = profile.age || 0;
+  const height = profile.height_cm || 0;
+  if (!weight) return 0;
+  if ((profile.sex || 'male') === 'female') {
+    return 10 * weight + 6.25 * height - 5 * age - 161;
+  }
+  return 10 * weight + 6.25 * height - 5 * age + 5;
+}
+
+function activityMultiplier(level) {
+  switch (level) {
+    case 'sedentary': return 1.2;
+    case 'light': return 1.375;
+    case 'moderate': return 1.55;
+    case 'active': return 1.725;
+    default: return 1.2;
+  }
+}
+
+async function latestWeight() {
+  const row = await get(
+    'SELECT weight_kg FROM entries WHERE weight_kg IS NOT NULL ORDER BY date DESC LIMIT 1'
+  );
+  return row ? row.weight_kg : null;
+}
+
+function totalBurned(entry) {
+  if (!entry) return 0;
+  return (
+    entry.calories_total ??
+    entry.calories_burned ??
+    (entry.calories_gym || 0) + (entry.calories_treadmill || 0)
+  );
+}
+
+app.get('/api/summary/daily-goal', async (_req, res) => {
+  try {
+    const profile = await fetchProfile();
+    const weight = (await latestWeight()) ?? profile.goal_weight ?? 0;
+
+    const bmr = calculateBMR(profile, weight);
+    const tdee = bmr * activityMultiplier(profile.activity_level);
+    const recommended = Math.max(0, Math.round(tdee - 500));
+
+    const todayEntry = await get(
+      'SELECT calories_total, calories_burned, calories_gym, calories_treadmill FROM entries WHERE date = ?',
+      [todayString()]
+    );
+
+    const todayTotal = totalBurned(todayEntry);
+    const netCalories = recommended - todayTotal;
+
+    res.json({
+      bmr: Math.round(bmr),
+      tdee: Math.round(tdee),
+      recommended_calories: recommended,
+      profile,
+      latest_weight: weight || null,
+      today_total_burned: todayTotal,
+      net_calories: netCalories
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to calculate daily goal' });
   }
 });
 
@@ -287,20 +485,20 @@ app.get('/api/summary/streaks', async (_req, res) => {
       if ((diff === 0 || diff === 1) && entry.gym_done === 1) {
         ongoing++;
         expected.setDate(expected.getDate() - 1);
-      } else break;
+      } else {
+        break;
+      }
     }
 
     res.json({
       current_gym_streak: ongoing,
       longest_gym_streak: longest
     });
-
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: 'Failed to calculate streaks' });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`Health tracker server running at http://localhost:${PORT}`);
+  console.log(`Health tracker server running on http://localhost:${PORT}`);
 });

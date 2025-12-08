@@ -77,66 +77,114 @@ function buildBadgeCatalog(entries = [], summary = {}, streaks = {}) {
   const currentStreak = streaks?.current_gym_streak || 0;
 
   return [
-    { id: "gym-3", category: "Gym streaks", title: "3-day Gym Streak", icon: "💥",
+    {
+      id: "gym-3",
+      category: "Gym streaks",
+      title: "3-day Gym Streak",
+      icon: "💥",
       description: "Stack three gym days back-to-back.",
       achieved: longestStreak >= 3,
-      detail: `${currentStreak}-day current streak`
+      detail: `${currentStreak}-day current streak`,
     },
-    { id: "gym-7", category: "Gym streaks", title: "7-day Gym Streak", icon: "🏆",
+    {
+      id: "gym-7",
+      category: "Gym streaks",
+      title: "7-day Gym Streak",
+      icon: "🏆",
       description: "Hold the line for a full week.",
       achieved: longestStreak >= 7,
-      detail: `Best streak: ${longestStreak} days`
+      detail: `Best streak: ${longestStreak} days`,
     },
-    { id: "gym-14", category: "Gym streaks", title: "14-day Gym Streak", icon: "⚡",
+    {
+      id: "gym-14",
+      category: "Gym streaks",
+      title: "14-day Gym Streak",
+      icon: "⚡",
       description: "Two unstoppable weeks in a row.",
       achieved: longestStreak >= 14,
-      detail: `Longest: ${longestStreak} days`
+      detail: `Longest: ${longestStreak} days`,
     },
-    { id: "consistency-beast", category: "Consistency awards", title: "Consistency Beast (80+)", icon: "🦁",
+    {
+      id: "consistency-beast",
+      category: "Consistency awards",
+      title: "Consistency Beast (80+)",
+      icon: "🦁",
       description: "Keep weekly consistency above 80.",
       achieved: weeklyConsistency >= 80,
-      detail: `This week: ${weeklyConsistency}%`
+      detail: `This week: ${weeklyConsistency}%`,
     },
-    { id: "consistency-solid", category: "Consistency awards", title: "Solid Momentum (60+)", icon: "🚀",
+    {
+      id: "consistency-solid",
+      category: "Consistency awards",
+      title: "Solid Momentum (60+)",
+      icon: "🚀",
       description: "Stay at 60+ weekly consistency.",
       achieved: weeklyConsistency >= 60,
-      detail: `This week: ${weeklyConsistency}%`
+      detail: `This week: ${weeklyConsistency}%`,
     },
-    { id: "logging-week", category: "Consistency awards", title: "Logged Every Day", icon: "📅",
+    {
+      id: "logging-week",
+      category: "Consistency awards",
+      title: "Logged Every Day",
+      icon: "📅",
       description: "Capture all seven days this week.",
       achieved: loggedDaysThisWeek >= 7,
-      detail: `${loggedDaysThisWeek}/7 days logged`
+      detail: `${loggedDaysThisWeek}/7 days logged`,
     },
-    { id: "tread-100km", category: "Treadmill milestones", title: "Treadmill 100 km total", icon: "🛣️",
+    {
+      id: "tread-100km",
+      category: "Treadmill milestones",
+      title: "Treadmill 100 km total",
+      icon: "🛣️",
       description: "Accumulate 100 km on the belt.",
       achieved: totalTreadmillDistance >= 100,
-      detail: `${totalTreadmillDistance.toFixed(1)} km total`
+      detail: `${totalTreadmillDistance.toFixed(1)} km total`,
     },
-    { id: "tread-10h", category: "Treadmill milestones", title: "10 Hours Moving", icon: "⏱️",
+    {
+      id: "tread-10h",
+      category: "Treadmill milestones",
+      title: "10 Hours Moving",
+      icon: "⏱️",
       description: "Spend 600 minutes on the treadmill.",
       achieved: totalTreadmillMinutes >= 600,
-      detail: `${totalTreadmillMinutes} min total`
+      detail: `${totalTreadmillMinutes} min total`,
     },
-    { id: "tread-goal-week", category: "Treadmill milestones", title: "Goal Crusher", icon: "🥇",
+    {
+      id: "tread-goal-week",
+      category: "Treadmill milestones",
+      title: "Goal Crusher",
+      icon: "🥇",
       description: "Hit 120 minutes on 5+ days.",
       achieved: treadmillGoalDays >= 5,
-      detail: `${treadmillGoalDays} days at goal`
+      detail: `${treadmillGoalDays} days at goal`,
     },
-    { id: "weight-1", category: "Weight milestones", title: "Weight –1 kg", icon: "🎯",
+    {
+      id: "weight-1",
+      category: "Weight milestones",
+      title: "Weight –1 kg",
+      icon: "🎯",
       description: "Lose the first kilogram from your start.",
       achieved: weightDelta >= 1,
-      detail: `Change: ${weightDelta.toFixed(1)} kg`
+      detail: `Change: ${weightDelta.toFixed(1)} kg`,
     },
-    { id: "weight-3", category: "Weight milestones", title: "Weight –3 kg", icon: "🪶",
+    {
+      id: "weight-3",
+      category: "Weight milestones",
+      title: "Weight –3 kg",
+      icon: "🪶",
       description: "Trim three kilograms from your baseline.",
       achieved: weightDelta >= 3,
-      detail: `Change: ${weightDelta.toFixed(1)} kg`
+      detail: `Change: ${weightDelta.toFixed(1)} kg`,
     },
-    { id: "gym-50", category: "Gym streaks", title: "Gym Century-in-Progress", icon: "💪",
+    {
+      id: "gym-50",
+      category: "Gym streaks",
+      title: "Gym Century-in-Progress",
+      icon: "💪",
       description: "Log 50 lifetime gym days.",
       achieved: gymDays >= 50,
-      detail: `${gymDays} gym days total`
-    }
+      detail: `${gymDays} gym days total`,
+    },
   ];
 }
 

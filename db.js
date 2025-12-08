@@ -6,6 +6,7 @@ const dbFile = path.join(__dirname, 'data.sqlite');
 const db = new sqlite3.Database(dbFile);
 
 db.serialize(() => {
+  // Main entries table
   db.run(`
     CREATE TABLE IF NOT EXISTS entries (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -14,13 +15,44 @@ db.serialize(() => {
       treadmill_minutes INTEGER DEFAULT 0,
       treadmill_distance_km REAL,
       calories_burned INTEGER DEFAULT 0,
+      calories_gym INTEGER DEFAULT 0,
+      calories_treadmill INTEGER DEFAULT 0,
+      calories_total INTEGER DEFAULT 0,
       carbs INTEGER DEFAULT 0,
       weight_kg REAL,
       mood TEXT,
       notes TEXT
     )
   `);
+
+  // Migration: ensure new columns exist
+  addColumnIfMissing('entries', 'calories_gym', 'INTEGER DEFAULT 0');
+  addColumnIfMissing('entries', 'calories_treadmill', 'INTEGER DEFAULT 0');
+  addColumnIfMissing('entries', 'calories_total', 'INTEGER DEFAULT 0');
+
+  // Profile table (new feature)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS profile (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      age INTEGER,
+      sex TEXT,
+      height_cm INTEGER,
+      goal_weight REAL,
+      activity_level TEXT
+    )
+  `);
 });
+
+// Utility for schema migrations
+function addColumnIfMissing(table, column, definition) {
+  db.all(`PRAGMA table_info(${table})`, (err, rows) => {
+    if (err) return;
+    const exists = rows.some((row) => row.name === column);
+    if (!exists) {
+      db.run(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+    }
+  });
+}
 
 function run(query, params = []) {
   return new Promise((resolve, reject) => {

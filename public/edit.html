@@ -16,6 +16,10 @@
         <a id="nav-dashboard" href="/">Dashboard</a>
         <a id="nav-edit" href="edit.html" class="active">Edit Today</a>
         <a id="nav-history" href="history.html">History</a>
+        <a id="nav-calendar" href="calendar.html">Calendar</a>
+        <a id="nav-weekly" href="weekly.html">Weekly</a>
+        <a id="nav-badges" href="badges.html">Badges</a>
+        <a id="nav-profile" href="profile.html">Profile</a>
         <a id="nav-weight" href="weight.html">Weight</a>
       </div>
       <div class="actions">
@@ -53,8 +57,16 @@
 
           <div class="section-title">NUTRITION</div>
 
-          <label for="calories_burned">Calories burned</label>
-          <input type="number" id="calories_burned" name="calories_burned" min="0" step="1" />
+          <label for="calories_gym">Gym calories burned</label>
+          <input type="number" id="calories_gym" name="calories_gym" min="0" step="1" />
+
+          <label for="calories_treadmill">Treadmill calories burned</label>
+          <input type="number" id="calories_treadmill" name="calories_treadmill" min="0" step="1" />
+
+          <div class="stat" style="margin-top:6px;">
+            <div>Total calories burned</div>
+            <strong id="calories_total">0</strong>
+          </div>
 
           <label for="carbs">Carbs (g)</label>
           <input type="number" id="carbs" name="carbs" min="0" step="1" />
@@ -95,7 +107,6 @@
   </main>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
   <script src="main.js"></script>
   <script src="edit.js"></script>
 </body>

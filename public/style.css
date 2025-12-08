@@ -172,6 +172,7 @@ h3 { margin: 12px 0 6px; }
   border: 1px solid var(--border);
   background: rgba(91, 124, 250, 0.12);
   font-weight: 600;
+  color: var(--text);
 }
 
 .badge.success {
@@ -206,12 +207,12 @@ h3 { margin: 12px 0 6px; }
 }
 
 .progress span {
-  display: block;
   height: 100%;
+  display: block;
   width: 0%;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
   border-radius: 999px;
   transition: width 0.3s ease;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
 }
 
 .consistency-pill {
@@ -232,8 +233,8 @@ h3 { margin: 12px 0 6px; }
 
 .circle-progress::after {
   content: '';
-  position: absolute;
   inset: 12px;
+  position: absolute;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 50%;
@@ -282,6 +283,7 @@ textarea {
   border: 1px solid var(--card-border);
   color: var(--text);
   font-size: 1rem;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
 }
 
 input:focus,
@@ -323,6 +325,8 @@ button.secondary,
   align-items: center;
 }
 
+.section-title { margin: 20px 0 6px; font-size: 0.95rem; letter-spacing: 0.04em; color: var(--muted); }
+
 .mood-options { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .mood-btn {
@@ -359,7 +363,6 @@ button.secondary,
   transform: translate(-50%, -6px);
 }
 
-/* Badge Cards */
 .badge-card {
   display: grid;
   grid-template-columns: 56px 1fr;
@@ -398,7 +401,6 @@ button.secondary,
   color: var(--text);
 }
 
-/* Achievement Chips */
 .achievement {
   padding: 10px 12px;
   border-radius: 12px;
@@ -414,7 +416,6 @@ button.secondary,
 
 .install-btn { background: var(--install-bg); color: #fff; }
 
-/* Fade Animation */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
@@ -429,7 +430,6 @@ button.secondary,
   .circle-progress { margin: 0 auto; }
 }
 
-/* Confetti */
 .confetti-piece {
   position: fixed;
   width: 10px;
@@ -447,7 +447,6 @@ button.secondary,
   }
 }
 
-/* Ribbon */
 .ribbon {
   position: absolute;
   top: 12px;
@@ -459,7 +458,6 @@ button.secondary,
   font-weight: 700;
 }
 
-/* Insights + Heatmap */
 .insight-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

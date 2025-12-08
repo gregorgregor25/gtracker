@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gtracker-cache-v4';
+const CACHE_NAME = 'gtracker-cache-v5';
 
 const ASSETS = [
   '/',
@@ -8,6 +8,7 @@ const ASSETS = [
   '/calendar.html',
   '/weekly.html',
   '/badges.html',
+  '/profile.html',
   '/weight.html',
   '/style.css',
   '/main.js',
@@ -17,6 +18,7 @@ const ASSETS = [
   '/calendar.js',
   '/weekly.js',
   '/badges.js',
+  '/profile.js',
   '/weight.js',
   '/manifest.json',
   '/icons/gtracker-192.svg',
@@ -33,9 +35,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
-        keys
-          .filter((k) => k !== CACHE_NAME)
-          .map((k) => caches.delete(k))
+        keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
       )
     )
   );
