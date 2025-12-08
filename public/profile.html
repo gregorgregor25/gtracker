@@ -72,6 +72,38 @@
       </form>
       <div id="profile-status" class="banner" style="display:none;"></div>
     </section>
+
+    <section class="card fade-in" style="max-width:720px;">
+      <div class="section-title" style="margin-bottom:4px;">LibreLinkUp access</div>
+      <p class="muted" style="margin-bottom:16px;">
+        Use your LibreLinkUp credentials so GTracker can fetch your latest glucose reading.
+        Stored securely on this device/server only.
+      </p>
+      <form id="llu-form" class="grid two">
+        <div>
+          <label class="section-title" for="llu-email">Email</label>
+          <input type="email" id="llu-email" name="llu-email" autocomplete="username" required />
+
+          <label class="section-title" for="llu-password">Password</label>
+          <input type="password" id="llu-password" name="llu-password" autocomplete="current-password" required />
+        </div>
+        <div>
+          <label class="section-title" for="llu-region">Region (optional)</label>
+          <input type="text" id="llu-region" name="llu-region" placeholder="e.g., eu" />
+
+          <label class="section-title" for="llu-tld">TLD (optional)</label>
+          <input type="text" id="llu-tld" name="llu-tld" placeholder="io" />
+
+          <div style="margin-top:18px; text-align:right;">
+            <button type="submit" class="btn" id="llu-save">Save LibreLinkUp Login</button>
+          </div>
+        </div>
+      </form>
+      <div id="llu-status" class="banner" style="display:none;"></div>
+      <p class="muted" style="margin-top:12px;">
+        Not for dosing decisions. Fetches read-only glucose info similar to the mobile app.
+      </p>
+    </section>
   </main>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="main.js"></script>

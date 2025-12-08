@@ -97,5 +97,6 @@ function updateCaloriesTotal(existingTotal) {
   const gym = Number(document.getElementById('calories_gym').value) || 0;
   const tread = Number(document.getElementById('calories_treadmill').value) || 0;
   const total = gym + tread;
-  document.getElementById('calories_total').textContent = total || existingTotal || 0;
+  document.getElementById('calories_total').textContent =
+    total || existingTotal || 0;
 }

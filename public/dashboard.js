@@ -4,6 +4,13 @@ const TREADMILL_GOAL = 120;
   setActiveNav('nav-dashboard');
   await loadToday();
   await loadSummary();
+
+  // Glucose feature (Codex addition)
+  await loadGlucose();
+  const refresh = document.getElementById('glucose-refresh');
+  if (refresh) {
+    refresh.addEventListener('click', () => loadGlucose(true));
+  }
 })();
 
 async function loadToday() {
@@ -36,7 +43,7 @@ async function loadToday() {
     const caloriesTotal =
       entry.calories_total ??
       entry.calories_burned ??
-      (caloriesGym + caloriesTread);
+      caloriesGym + caloriesTread;
 
     document.getElementById('stat-calories-gym').textContent = caloriesGym;
     document.getElementById('stat-calories-tread').textContent = caloriesTread;
@@ -52,9 +59,7 @@ async function loadToday() {
 
     const progress = Math.min(
       100,
-      Math.round(
-        ((entry.treadmill_minutes || 0) / TREADMILL_GOAL) * 100
-      )
+      Math.round(((entry.treadmill_minutes || 0) / TREADMILL_GOAL) * 100)
     );
     document.getElementById('treadmill-progress').style.width = `${progress}%`;
     animateRing(document.getElementById('treadmill-ring'), progress);
@@ -65,7 +70,6 @@ async function loadToday() {
         : entry.gym_done
         ? 'Great job hitting the gym!'
         : 'You got this. Gym time awaits.';
-
     document.getElementById('today-message').textContent = message;
 
     if (
@@ -137,6 +141,7 @@ async function loadSummary() {
 
     const achievementArea = document.getElementById('achievement-badges');
     achievementArea.innerHTML = '';
+
     if (streaks.current_gym_streak >= 5) {
       addAchievement(achievementArea, '🏆', '5-day streak');
     }
@@ -161,7 +166,6 @@ async function loadSummary() {
       );
     }
 
-    // Daily energy stats
     const target = Math.round(dailyGoal.recommended_calories || 0);
 
     const burnedToday = Math.round(
@@ -170,9 +174,7 @@ async function loadSummary() {
         0
     );
 
-    const consumedToday = Math.round(
-      dailyGoal.calories_consumed || 0
-    );
+    const consumedToday = Math.round(dailyGoal.calories_consumed || 0);
 
     const netToday = Math.round(
       dailyGoal.net_calories ?? (consumedToday - burnedToday)
@@ -184,6 +186,7 @@ async function loadSummary() {
     document.getElementById('stat-tdee').textContent = Math.round(
       dailyGoal.tdee || 0
     );
+
     document.getElementById('stat-target').textContent = target;
     document.getElementById('stat-consumed').textContent = consumedToday;
     document.getElementById('stat-burned').textContent = burnedToday;
@@ -207,6 +210,7 @@ async function loadSummary() {
   } catch (err) {
     document.getElementById('consistency-label').textContent =
       'Unable to load summary';
+
     const netStatus = document.getElementById('net-status');
     if (netStatus) {
       netStatus.textContent = 'Unavailable';
@@ -220,4 +224,41 @@ function addAchievement(container, icon, text) {
   badge.className = 'achievement';
   badge.innerHTML = `<span>${icon}</span> <span>${text}</span>`;
   container.appendChild(badge);
+}
+
+// ---------------------
+// LibreLinkUp Glucose UI
+// ---------------------
+async function loadGlucose(fromButton = false) {
+  const valueEl = document.getElementById('glucose-value');
+  const trendEl = document.getElementById('glucose-trend');
+  const timeEl = document.getElementById('glucose-time');
+  if (!valueEl || !trendEl || !timeEl) return;
+
+  if (fromButton) {
+    valueEl.textContent = 'Refreshing...';
+  }
+
+  try {
+    const data = await fetchJSON('/api/glucose/latest');
+    if (!data.ok || !data.reading) throw new Error('No reading');
+
+    const reading = data.reading;
+    const unit = reading.unit ? ` ${reading.unit}` : '';
+
+    valueEl.textContent =
+      reading.value !== undefined && reading.value !== null
+        ? `${reading.value}${unit}`
+        : '—';
+
+    trendEl.textContent = `Trend: ${reading.trend || '—'}`;
+
+    const time = reading.timestamp ? new Date(reading.timestamp) : null;
+    timeEl.textContent = time ? `Updated: ${time.toLocaleString()}` : 'Updated: —';
+  } catch (err) {
+    console.error('Glucose fetch failed', err);
+    valueEl.textContent = 'Unavailable';
+    trendEl.textContent = 'Could not fetch current glucose from LibreLinkUp.';
+    timeEl.textContent = 'Updated: —';
+  }
 }

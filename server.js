@@ -1,6 +1,11 @@
 const express = require('express');
 const path = require('path');
 const { run, get, all } = require('./db');
+const {
+  fetchLatestReading,
+  setCredentials,
+  getCredentialStatus,
+} = require('./librelinkup');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -503,6 +508,43 @@ app.get('/api/summary/streaks', async (_req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to calculate streaks' });
+  }
+});
+
+/* LIBRELINKUP CONFIG + LATEST */
+
+app.get('/api/glucose/config', (_req, res) => {
+  try {
+    const status = getCredentialStatus();
+    res.json({ ok: true, ...status });
+  } catch (err) {
+    console.error('LibreLinkUp config error:', err.message || err);
+    res.status(500).json({ ok: false, error: 'Unable to load LibreLinkUp config' });
+  }
+});
+
+app.post('/api/glucose/config', (req, res) => {
+  try {
+    const { email, password, region, tld } = req.body || {};
+    if (!email || !password) {
+      return res.status(400).json({ ok: false, error: 'Email and password are required' });
+    }
+    setCredentials({ email, password, region, tld });
+    const status = getCredentialStatus();
+    res.json({ ok: true, ...status });
+  } catch (err) {
+    console.error('LibreLinkUp config save error:', err.message || err);
+    res.status(500).json({ ok: false, error: 'Unable to save LibreLinkUp credentials' });
+  }
+});
+
+app.get('/api/glucose/latest', async (_req, res) => {
+  try {
+    const reading = await fetchLatestReading();
+    res.json({ ok: true, reading });
+  } catch (err) {
+    console.error('LibreLinkUp error:', err.message || err);
+    res.status(500).json({ ok: false, error: err.message || 'Unable to fetch glucose data' });
   }
 });
 

@@ -52,7 +52,6 @@
     </div>
 
     <section class="grid two" style="margin-top:16px;">
-
       <!-- TODAY CARD -->
       <div class="card" id="today-card">
         <div class="flex" style="justify-content: space-between;">
@@ -174,6 +173,22 @@
         <p class="muted" id="energy-note"></p>
       </div>
 
+      <!-- GLUCOSE CARD (new feature) -->
+      <div class="card" id="glucose-card">
+        <div class="flex" style="justify-content: space-between; align-items: center;">
+          <h2>Glucose (info)</h2>
+          <button class="btn secondary" id="glucose-refresh" type="button">Refresh</button>
+        </div>
+        <div class="stat" style="margin-top:12px;">
+          <div>Current reading</div>
+          <strong id="glucose-value">—</strong>
+        </div>
+        <div class="muted" id="glucose-trend">Trend: —</div>
+        <div class="muted" id="glucose-time">Updated: —</div>
+        <p class="muted" style="margin-top:10px;">
+          For awareness and tracking only — not for medical dosing.
+        </p>
+      </div>
     </section>
 
     <section class="grid two" style="margin-top:16px;">

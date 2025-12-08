@@ -22,7 +22,7 @@ const ASSETS = [
   '/weight.js',
   '/manifest.json',
   '/icons/gtracker-192.svg',
-  '/icons/gtracker-512.svg'
+  '/icons/gtracker-512.svg',
 ];
 
 // INSTALL
