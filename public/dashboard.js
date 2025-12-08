@@ -35,15 +35,19 @@ async function loadToday() {
     document.getElementById('stat-weight').textContent = formatNumber(entry.weight_kg, 1);
     document.getElementById('stat-treadmill').textContent = entry.treadmill_minutes || 0;
 
-    const progress = Math.min(100, Math.round(((entry.treadmill_minutes || 0) / TREADMILL_GOAL) * 100));
+    const progress = Math.min(
+      100,
+      Math.round(((entry.treadmill_minutes || 0) / TREADMILL_GOAL) * 100)
+    );
     document.getElementById('treadmill-progress').style.width = `${progress}%`;
     animateRing(document.getElementById('treadmill-ring'), progress);
 
-    const message = entry.gym_done && entry.treadmill_minutes >= TREADMILL_GOAL
-      ? 'You smashed it today! Perfect training day!'
-      : entry.gym_done
-      ? 'Great job hitting the gym!'
-      : 'You got this. Gym time awaits.';
+    const message =
+      entry.gym_done && entry.treadmill_minutes >= TREADMILL_GOAL
+        ? 'You smashed it today! Perfect training day!'
+        : entry.gym_done
+        ? 'Great job hitting the gym!'
+        : 'You got this. Gym time awaits.';
     document.getElementById('today-message').textContent = message;
 
     if (entry.gym_done && entry.treadmill_minutes >= TREADMILL_GOAL && !previousTreadGoal) {
@@ -60,10 +64,9 @@ async function loadToday() {
 
 async function loadSummary() {
   try {
-    const [summary, streaks, entries] = await Promise.all([
+    const [summary, streaks] = await Promise.all([
       fetchJSON('/api/summary/week'),
       fetchJSON('/api/summary/streaks'),
-      fetchJSON('/api/entries'),
     ]);
 
     document.getElementById('current-streak').textContent = streaks.current_gym_streak;
@@ -84,17 +87,6 @@ async function loadSummary() {
       span.textContent = text;
       badgeContainer.appendChild(span);
     });
-
-    const badgeCatalog = buildBadgeCatalog(entries, summary, streaks);
-    const unlocked = badgeCatalog.filter((b) => b.achieved).slice(0, 3);
-    if (unlocked.length) {
-      unlocked.forEach((badge) => {
-        const chip = document.createElement('span');
-        chip.className = 'badge subtle';
-        chip.textContent = `${badge.icon} ${badge.title}`;
-        badgeContainer.appendChild(chip);
-      });
-    }
 
     const achievementArea = document.getElementById('achievement-badges');
     achievementArea.innerHTML = '';
