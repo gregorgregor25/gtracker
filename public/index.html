@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#5b7cfa" />
+  <title>Health & Consistency Tracker</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <nav class="nav">
+      <div class="links">
+        <strong>GTracker</strong>
+        <a id="nav-dashboard" href="/" class="active">Dashboard</a>
+        <a id="nav-edit" href="edit.html">Edit Today</a>
+        <a id="nav-history" href="history.html">History</a>
+        <a id="nav-calendar" href="calendar.html">Calendar</a>
+        <a id="nav-weekly" href="weekly.html">Weekly</a>
+        <a id="nav-badges" href="badges.html">Badges</a>
+        <a id="nav-profile" href="profile.html">Profile</a>
+        <a id="nav-weight" href="weight.html">Weight</a>
+      </div>
+      <div class="actions">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">🌙</button>
+        <button id="nav-install" class="install-btn" style="display:none;">➕ Install</button>
+      </div>
+    </nav>
+  </header>
+  <main>
+    <div class="hero">
+      <div>
+        <p class="muted hero-title">Your wellness control center</p>
+        <h1 class="headline" id="motivation-heading">Loading...</h1>
+        <div class="flex">
+          <span class="badge" id="today-date">Today</span>
+          <span class="badge" id="today-mood">Mood: —</span>
+        </div>
+      </div>
+      <div class="card" style="max-width:280px; position:relative;">
+        <div class="ribbon" id="streak-ribbon">Focus Mode</div>
+        <div class="circle-progress" id="treadmill-ring"><span id="treadmill-ring-text">0%</span></div>
+        <p class="muted" style="text-align:center; margin-top:8px;">Treadmill toward 120 min</p>
+      </div>
+    </div>
+
+    <section class="grid two" style="margin-top:16px;">
+      <div class="card" id="today-card">
+        <div class="flex" style="justify-content: space-between;">
+          <h2>Today</h2>
+          <div id="gym-status" class="badge">Loading...</div>
+        </div>
+        <div class="banner" id="today-message"></div>
+        <div class="grid two" style="margin-top:12px;">
+          <div class="stat">
+            <div>Gym calories 🔥</div>
+            <strong id="stat-calories-gym">—</strong>
+          </div>
+          <div class="stat">
+            <div>Treadmill calories 🔥</div>
+            <strong id="stat-calories-tread">—</strong>
+          </div>
+          <div class="stat">
+            <div>Total calories 🔥</div>
+            <strong id="stat-calories-total">—</strong>
+          </div>
+          <div class="stat">
+            <div>Carbs 🧪</div>
+            <strong id="stat-carbs">—</strong>
+          </div>
+          <div class="stat">
+            <div>Weight ⚖️</div>
+            <strong id="stat-weight">—</strong>
+          </div>
+          <div class="stat">
+            <div>Treadmill ⏱️</div>
+            <strong id="stat-treadmill">—</strong>
+          </div>
+        </div>
+        <div class="progress" aria-label="Treadmill progress">
+          <span id="treadmill-progress" style="width:0%"></span>
+        </div>
+        <small class="muted">Goal: 120 minutes</small>
+        <div class="flex" style="margin-top:10px;" id="achievement-badges"></div>
+      </div>
+
+      <div class="card">
+        <h2>Streaks & Consistency</h2>
+        <div class="grid two">
+          <div class="stat">
+            <div>Current streak</div>
+            <strong id="current-streak">0</strong>
+          </div>
+          <div class="stat">
+            <div>Best streak</div>
+            <strong id="best-streak">0</strong>
+          </div>
+        </div>
+        <div class="consistency-pill" style="margin-top:14px;">
+          <div class="badge">Score</div>
+          <h2 id="consistency-score">0</h2>
+        </div>
+        <div class="muted" id="consistency-label"></div>
+        <div class="progress" aria-label="Consistency score">
+          <span id="consistency-progress" style="width:0%"></span>
+        </div>
+        <div class="flex" id="badge-container"></div>
+      </div>
+
+      <div class="card" id="energy-card">
+        <div class="flex" style="justify-content: space-between;">
+          <h2>Daily Energy</h2>
+          <div class="badge" id="net-status">Loading...</div>
+        </div>
+        <div class="grid two" style="margin-top:12px;">
+          <div class="stat">
+            <div>BMR</div>
+            <strong id="stat-bmr">—</strong>
+          </div>
+          <div class="stat">
+            <div>TDEE</div>
+            <strong id="stat-tdee">—</strong>
+          </div>
+          <div class="stat">
+            <div>Daily target</div>
+            <strong id="stat-target">—</strong>
+          </div>
+          <div class="stat">
+            <div>Calories eaten</div>
+            <strong id="stat-consumed">—</strong>
+          </div>
+          <div class="stat">
+            <div>Calories burned</div>
+            <strong id="stat-burned">—</strong>
+          </div>
+          <div class="stat">
+            <div>Net calories today</div>
+            <strong id="stat-net">—</strong>
+          </div>
+        </div>
+        <p class="muted" id="energy-note"></p>
+      </div>
+    </section>
+
+    <section class="grid two" style="margin-top:16px;">
+      <div class="card">
+        <h2>Quick Actions</h2>
+        <div class="flex">
+          <a class="btn" href="edit.html">Edit Today</a>
+          <a class="btn secondary" href="history.html">View History</a>
+          <a class="btn secondary" href="calendar.html">Calendar Heatmap</a>
+          <a class="btn secondary" href="weekly.html">Weekly Summary</a>
+          <a class="btn secondary" href="badges.html">Badges</a>
+          <a class="btn secondary" href="profile.html">Profile</a>
+          <a class="btn secondary" href="weight.html">Weight Trend</a>
+        </div>
+      </div>
+      <div class="card" id="install-card" style="display:none;">
+        <h2>Install as App</h2>
+        <p class="muted">Add GTracker to your home screen for offline-friendly quick logging.</p>
+        <button id="install-btn" class="install-btn">Install GTracker</button>
+      </div>
+    </section>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="main.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>

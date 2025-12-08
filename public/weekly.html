@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#5b7cfa" />
+  <title>Weekly Summary - Health Tracker</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <nav class="nav">
+      <div class="links">
+        <strong>GTracker</strong>
+        <a id="nav-dashboard" href="/">Dashboard</a>
+        <a id="nav-edit" href="edit.html">Edit Today</a>
+        <a id="nav-history" href="history.html">History</a>
+        <a id="nav-calendar" href="calendar.html">Calendar</a>
+        <a id="nav-weekly" href="weekly.html" class="active">Weekly</a>
+        <a id="nav-badges" href="badges.html">Badges</a>
+        <a id="nav-profile" href="profile.html">Profile</a>
+        <a id="nav-weight" href="weight.html">Weight</a>
+      </div>
+      <div class="actions">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">🌙</button>
+      </div>
+    </nav>
+  </header>
+  <main>
+    <div class="hero">
+      <div>
+        <p class="muted hero-title">Weekly pulse check</p>
+        <h1>Weekly Summary</h1>
+        <div class="flex" style="gap:8px; align-items:center;">
+          <span class="badge" id="week-range">This week</span>
+          <span class="badge" id="best-mood-badge">Mood: —</span>
+        </div>
+      </div>
+      <div class="badge" id="weekly-status">Stay consistent</div>
+    </div>
+
+    <section class="grid two fade-in">
+      <div class="card">
+        <h2>Totals & Averages</h2>
+        <div class="grid two">
+          <div class="stat">
+            <div>Total calories 🔥</div>
+            <strong id="weekly-calories">—</strong>
+          </div>
+          <div class="stat">
+            <div>Total calories consumed 🍽️</div>
+            <strong id="weekly-calories-consumed">—</strong>
+          </div>
+          <div class="stat">
+            <div>Treadmill ⏱️</div>
+            <strong id="weekly-treadmill">—</strong>
+          </div>
+          <div class="stat">
+            <div>Average Weight ⚖️</div>
+            <strong id="weekly-weight">—</strong>
+          </div>
+          <div class="stat">
+            <div>Gym Days 🏋️</div>
+            <strong id="weekly-gym-days">—</strong>
+          </div>
+          <div class="stat">
+            <div>Avg calories eaten</div>
+            <strong id="weekly-calories-consumed-avg">—</strong>
+          </div>
+          <div class="stat">
+            <div>Consistency Score ⭐</div>
+            <strong id="weekly-consistency">—</strong>
+          </div>
+          <div class="stat">
+            <div>Best Mood 😊</div>
+            <strong id="weekly-mood">—</strong>
+          </div>
+        </div>
+        <div class="progress" aria-label="Weekly consistency">
+          <span id="weekly-consistency-progress" style="width:0%"></span>
+        </div>
+        <div class="muted" id="weekly-consistency-label"></div>
+      </div>
+
+      <div class="card">
+        <h2>Insight Cards</h2>
+        <div class="insight-grid" id="insight-grid">
+          <div class="mini-card">
+            <div class="badge">Best day</div>
+            <strong id="insight-best-day">—</strong>
+            <p class="muted" id="insight-best-day-detail">Most consistent effort</p>
+          </div>
+          <div class="mini-card">
+            <div class="badge">Treadmill goal hits</div>
+            <strong id="insight-tread-goal">—</strong>
+            <p class="muted">Days at 120+ minutes</p>
+          </div>
+          <div class="mini-card">
+            <div class="badge">Carb discipline</div>
+            <strong id="insight-carbs">—</strong>
+            <p class="muted" id="insight-carbs-detail">Lowest carb day</p>
+          </div>
+          <div class="mini-card">
+            <div class="badge">Lightest calorie day</div>
+            <strong id="insight-calories-consumed">—</strong>
+            <p class="muted" id="insight-calories-consumed-detail">Lowest intake logged</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card fade-in">
+      <h2>Daily Snapshots</h2>
+      <div class="grid" id="day-list">
+        <p class="muted">Loading...</p>
+      </div>
+    </section>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="main.js"></script>
+  <script src="weekly.js"></script>
+</body>
+</html>
