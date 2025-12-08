@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#5b7cfa" />
+  <title>Profile - GTracker</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <nav class="nav">
+      <div class="links">
+        <strong>GTracker</strong>
+        <a id="nav-dashboard" href="/">Dashboard</a>
+        <a id="nav-edit" href="edit.html">Edit Today</a>
+        <a id="nav-history" href="history.html">History</a>
+        <a id="nav-calendar" href="calendar.html">Calendar</a>
+        <a id="nav-weekly" href="weekly.html">Weekly</a>
+        <a id="nav-badges" href="badges.html">Badges</a>
+        <a id="nav-profile" href="profile.html" class="active">Profile</a>
+        <a id="nav-weight" href="weight.html">Weight</a>
+      </div>
+      <div class="actions">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">🌙</button>
+      </div>
+    </nav>
+  </header>
+  <main>
+    <div class="hero">
+      <div>
+        <p class="muted hero-title">Tune your plan</p>
+        <h1>Your Profile</h1>
+      </div>
+      <div class="badge">Used for BMR & TDEE</div>
+    </div>
+
+    <section class="card fade-in" style="max-width:720px;">
+      <form id="profile-form" class="grid two">
+        <div>
+          <label class="section-title" for="age">Age</label>
+          <input type="number" id="age" name="age" min="0" step="1" />
+
+          <label class="section-title" for="sex">Sex</label>
+          <select id="sex" name="sex">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+
+          <label class="section-title" for="height_cm">Height (cm)</label>
+          <input type="number" id="height_cm" name="height_cm" min="0" step="1" />
+        </div>
+        <div>
+          <label class="section-title" for="goal_weight">Goal weight (kg)</label>
+          <input type="number" id="goal_weight" name="goal_weight" min="0" step="0.1" />
+
+          <label class="section-title" for="activity_level">Activity level</label>
+          <select id="activity_level" name="activity_level">
+            <option value="sedentary">Sedentary</option>
+            <option value="light">Light</option>
+            <option value="moderate">Moderate</option>
+            <option value="active">Active</option>
+          </select>
+
+          <div style="margin-top:18px; text-align:right;">
+            <button type="submit" class="btn" id="profile-save">Save Profile</button>
+          </div>
+        </div>
+      </form>
+      <div id="profile-status" class="banner" style="display:none;"></div>
+    </section>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="main.js"></script>
+  <script src="profile.js"></script>
+</body>
+</html>
