@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Today - Health Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <nav class="nav">
+      <a id="nav-dashboard" href="/">Dashboard</a>
+      <a id="nav-edit" href="edit.html" class="active">Edit Today</a>
+      <a id="nav-history" href="history.html">History</a>
+      <a id="nav-weight" href="weight.html">Weight</a>
+    </nav>
+  </header>
+  <main>
+    <h1>Edit Today</h1>
+    <section class="card">
+      <div id="save-status" class="banner" style="display:none"></div>
+      <form id="today-form">
+        <label><input type="checkbox" name="gym_done" id="gym_done" /> Gym workout done</label>
+
+        <label for="treadmill_minutes">Treadmill minutes</label>
+        <input type="number" id="treadmill_minutes" name="treadmill_minutes" min="0" step="1" />
+
+        <label for="treadmill_distance_km">Treadmill distance (km)</label>
+        <input type="number" id="treadmill_distance_km" name="treadmill_distance_km" min="0" step="0.1" />
+
+        <label for="calories_burned">Calories burned</label>
+        <input type="number" id="calories_burned" name="calories_burned" min="0" step="1" />
+
+        <label for="carbs">Carbs (g)</label>
+        <input type="number" id="carbs" name="carbs" min="0" step="1" />
+
+        <label for="weight_kg">Weight (kg)</label>
+        <input type="number" id="weight_kg" name="weight_kg" min="0" step="0.1" />
+
+        <label for="mood">Mood</label>
+        <select id="mood" name="mood">
+          <option value="">-- select --</option>
+          <option value="low">Low</option>
+          <option value="ok">Ok</option>
+          <option value="good">Good</option>
+          <option value="great">Great</option>
+        </select>
+
+        <label for="notes">Notes</label>
+        <textarea id="notes" name="notes" rows="3"></textarea>
+
+        <button type="submit">Save Today</button>
+      </form>
+    </section>
+  </main>
+  <script src="main.js"></script>
+  <script src="edit.js"></script>
+</body>
+</html>
