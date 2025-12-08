@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weight Graph - Health Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <nav class="nav">
+      <a id="nav-dashboard" href="/">Dashboard</a>
+      <a id="nav-edit" href="edit.html">Edit Today</a>
+      <a id="nav-history" href="history.html">History</a>
+      <a id="nav-weight" href="weight.html" class="active">Weight</a>
+    </nav>
+  </header>
+  <main>
+    <h1>Weight Trend</h1>
+    <section class="card">
+      <canvas id="weight-chart" height="120"></canvas>
+      <div class="grid two" id="weight-stats"></div>
+    </section>
+  </main>
+  <script src="main.js"></script>
+  <script src="weight.js"></script>
+</body>
+</html>

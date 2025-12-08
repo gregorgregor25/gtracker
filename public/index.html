@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Health & Consistency Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <nav class="nav">
+      <a id="nav-dashboard" href="/" class="active">Dashboard</a>
+      <a id="nav-edit" href="edit.html">Edit Today</a>
+      <a id="nav-history" href="history.html">History</a>
+      <a id="nav-weight" href="weight.html">Weight</a>
+    </nav>
+  </header>
+  <main>
+    <h1>Dashboard</h1>
+    <p class="muted">Quick glance at today and your recent consistency.</p>
+
+    <section class="card" id="today-card">
+      <div class="grid two">
+        <div>
+          <h2>Today <span id="today-date"></span></h2>
+          <div id="gym-status" class="badge">Loading...</div>
+          <div class="banner" id="today-message"></div>
+          <div class="grid two">
+            <div class="stat">
+              <div>Calories</div>
+              <strong id="stat-calories">—</strong>
+            </div>
+            <div class="stat">
+              <div>Carbs</div>
+              <strong id="stat-carbs">—</strong>
+            </div>
+            <div class="stat">
+              <div>Weight</div>
+              <strong id="stat-weight">—</strong>
+            </div>
+            <div class="stat">
+              <div>Treadmill minutes</div>
+              <strong id="stat-treadmill">—</strong>
+            </div>
+          </div>
+          <div class="progress" aria-label="Treadmill progress">
+            <span id="treadmill-progress" style="width:0%"></span>
+          </div>
+          <small class="muted">Goal: 120 minutes</small>
+        </div>
+        <div>
+          <h3>Streaks</h3>
+          <div class="grid two">
+            <div class="stat">
+              <div>Current streak</div>
+              <strong id="current-streak">0</strong>
+            </div>
+            <div class="stat">
+              <div>Best streak</div>
+              <strong id="best-streak">0</strong>
+            </div>
+          </div>
+          <h3>Consistency</h3>
+          <div class="consistency" id="consistency-score">0</div>
+          <div class="muted" id="consistency-label"></div>
+          <div class="progress" aria-label="Consistency score">
+            <span id="consistency-progress" style="width:0%"></span>
+          </div>
+          <div class="flex" id="badge-container"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script src="main.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>
