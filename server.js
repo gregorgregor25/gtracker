@@ -170,24 +170,24 @@ app.post('/api/debug/generate-fake', async (req, res) => {
     const days = Math.max(1, parseInt(req.body?.days, 10) || 90);
     const today = new Date();
     let baseWeight = 110;
-
     let count = 0;
+
     for (let i = 0; i < days; i++) {
       const d = new Date(today);
       d.setDate(today.getDate() - i);
       const dateStr = d.toISOString().slice(0, 10);
 
       const gymDone = Math.random() < 0.5;
-      const treadmillMinutes = Math.random() < 0.4 ? 0 : Math.floor(Math.random() * 60);
+      const treadmillMinutes = Math.random() < 0.4 ? 0 : Math.floor(Math.random() * 61);
       const treadmillDistance = Math.random() < 0.4 ? 0 : parseFloat((Math.random() * 3).toFixed(2));
 
-      const caloriesGym = gymDone ? Math.floor(Math.random() * 350) : 0;
-      const caloriesTreadmill = treadmillMinutes ? Math.floor(Math.random() * 250) : 0;
+      const caloriesGym = gymDone ? Math.floor(Math.random() * 351) : 0;
+      const caloriesTreadmill = treadmillMinutes ? Math.floor(Math.random() * 251) : 0;
 
-      const caloriesConsumed = 1200 + Math.floor(Math.random() * 2301);
-      const carbs = Math.floor(Math.random() * 200);
+      const caloriesConsumed = 1200 + Math.floor(Math.random() * 2301); // 1200–3500
+      const carbs = Math.floor(Math.random() * 201);
 
-      const weight = baseWeight + (Math.random() - 0.5) * 5;
+      const weight = baseWeight + (Math.random() - 0.5) * 5; // ±2.5kg
       baseWeight = weight;
 
       const entry = normalizeEntry({
@@ -201,6 +201,7 @@ app.post('/api/debug/generate-fake', async (req, res) => {
         carbs,
         weight_kg: parseFloat(weight.toFixed(1)),
         mood: moods[Math.floor(Math.random() * moods.length)],
+        notes: '',
       });
 
       await upsertEntry(entry);
@@ -208,7 +209,7 @@ app.post('/api/debug/generate-fake', async (req, res) => {
     }
 
     res.json({ ok: true, count });
-  } catch {
+  } catch (err) {
     res.status(500).json({ error: 'Failed to generate fake data' });
   }
 });
@@ -219,7 +220,7 @@ app.post('/api/debug/reset', async (_req, res) => {
   try {
     await run('DELETE FROM entries');
     res.json({ ok: true });
-  } catch {
+  } catch (err) {
     res.status(500).json({ error: 'Failed to reset entries' });
   }
 });
@@ -289,9 +290,9 @@ app.get('/api/summary/week', async (_req, res) => {
       avg_calories_consumed: avgCaloriesConsumed,
       avg_carbs: avgCarbs,
       avg_weight: avgWeight,
-      consistency_score
+      consistency_score,
     });
-  } catch {
+  } catch (err) {
     res.status(500).json({ error: 'Failed to calculate weekly summary' });
   }
 });
@@ -313,13 +314,22 @@ async function fetchProfile() {
   return p || defaultProfile();
 }
 
-function sanitizeProfile(body) {
-  const toInt = (v) => (v === '' || v === null ? null : parseInt(v, 10));
-  const toFloat = (v) => (v === '' || v === null ? null : parseFloat(v));
+function sanitizeProfile(body = {}) {
+  const toInt = (value) => {
+    if (value === undefined || value === null || value === '') return null;
+    const num = parseInt(value, 10);
+    return Number.isNaN(num) ? null : num;
+  };
 
-  const defaults = defaultProfile();
-  const allowedSex = ['male', 'female'];
+  const toFloat = (value) => {
+    if (value === undefined || value === null || value === '') return null;
+    const num = parseFloat(value);
+    return Number.isNaN(num) ? null : num;
+  };
+
   const allowedActivity = ['sedentary', 'light', 'moderate', 'active'];
+  const allowedSex = ['male', 'female'];
+  const defaults = defaultProfile();
 
   return {
     age: toInt(body.age) ?? defaults.age,
@@ -335,14 +345,14 @@ function sanitizeProfile(body) {
 app.get('/api/profile', async (_req, res) => {
   try {
     res.json(await fetchProfile());
-  } catch {
+  } catch (err) {
     res.status(500).json({ error: 'Failed to load profile' });
   }
 });
 
 app.post('/api/profile', async (req, res) => {
   try {
-    const p = sanitizeProfile(req.body);
+    const p = sanitizeProfile(req.body || {});
     const existing = await get('SELECT id FROM profile LIMIT 1');
 
     if (existing) {
@@ -358,7 +368,7 @@ app.post('/api/profile', async (req, res) => {
     }
 
     res.json(await fetchProfile());
-  } catch {
+  } catch (err) {
     res.status(500).json({ error: 'Failed to save profile' });
   }
 });
@@ -366,8 +376,9 @@ app.post('/api/profile', async (req, res) => {
 /* DAILY GOAL */
 
 function calculateBMR(profile, weight) {
-  const age = profile.age;
-  const height = profile.height_cm;
+  const age = profile.age || 0;
+  const height = profile.height_cm || 0;
+  if (!weight) return 0;
 
   return profile.sex === 'female'
     ? 10 * weight + 6.25 * height - 5 * age - 161
@@ -402,7 +413,7 @@ function totalBurned(entry) {
 app.get('/api/summary/daily-goal', async (_req, res) => {
   try {
     const profile = await fetchProfile();
-    const weight = (await latestWeight()) ?? profile.goal_weight;
+    const weight = (await latestWeight()) ?? profile.goal_weight ?? 0;
 
     const bmr = calculateBMR(profile, weight);
     const tdee = bmr * activityMultiplier(profile.activity_level);
@@ -415,20 +426,20 @@ app.get('/api/summary/daily-goal', async (_req, res) => {
 
     const burned = totalBurned(todayEntry);
     const consumed = todayEntry?.calories_consumed ?? 0;
-    const net = consumed - burned;
+    const net = (consumed || 0) - burned;
 
     res.json({
       bmr: Math.round(bmr),
       tdee: Math.round(tdee),
       recommended_calories: recommended,
       profile,
-      latest_weight: weight,
+      latest_weight: weight || null,
       today_total_burned: burned,
       calories_consumed: consumed,
       calories_burned: burned,
       net_calories: net,
     });
-  } catch {
+  } catch (err) {
     res.status(500).json({ error: 'Failed to calculate daily goal' });
   }
 });
@@ -442,7 +453,9 @@ function parseDate(str) {
 
 app.get('/api/summary/streaks', async (_req, res) => {
   try {
-    const entries = await all('SELECT date, gym_done FROM entries ORDER BY date ASC');
+    const entries = await all(
+      'SELECT date, gym_done FROM entries ORDER BY date ASC'
+    );
 
     let longest = 0;
     let current = 0;
@@ -488,7 +501,7 @@ app.get('/api/summary/streaks', async (_req, res) => {
       current_gym_streak: ongoing,
       longest_gym_streak: longest,
     });
-  } catch {
+  } catch (err) {
     res.status(500).json({ error: 'Failed to calculate streaks' });
   }
 });

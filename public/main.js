@@ -35,6 +35,33 @@ function motivationalText(score) {
   return "Fresh start week ✨";
 }
 
+/* QUICK ACTIONS CARD */
+function quickActionsMarkup() {
+  return `
+    <div class="card quick-actions-card fade-in">
+      <div class="quick-actions-header">
+        <h2>Quick Actions</h2>
+        <span class="badge subtle">Jump anywhere</span>
+      </div>
+      <div class="quick-actions-buttons">
+        <a class="btn" href="edit.html">Edit Today</a>
+        <a class="btn secondary" href="history.html">View History</a>
+        <a class="btn secondary" href="calendar.html">Calendar Heatmap</a>
+        <a class="btn secondary" href="weekly.html">Weekly Summary</a>
+        <a class="btn secondary" href="badges.html">Badges</a>
+        <a class="btn secondary" href="profile.html">Profile</a>
+        <a class="btn secondary" href="weight.html">Weight Trend</a>
+      </div>
+    </div>
+  `;
+}
+
+function injectQuickActions() {
+  document.querySelectorAll("[data-quick-actions]").forEach((el) => {
+    el.innerHTML = quickActionsMarkup();
+  });
+}
+
 /* FULL BADGE CATALOG */
 function buildBadgeCatalog(entries = [], summary = {}, streaks = {}) {
   const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date));
@@ -210,11 +237,13 @@ function setTheme(mode) {
   if (toggle) toggle.textContent = mode === "dark" ? "☀️" : "🌙";
 }
 
-window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
-  if (!localStorage.getItem("gtracker-theme")) {
-    setTheme(e.matches ? "dark" : "light");
-  }
-});
+window
+  .matchMedia("(prefers-color-scheme: dark)")
+  .addEventListener("change", (e) => {
+    if (!localStorage.getItem("gtracker-theme")) {
+      setTheme(e.matches ? "dark" : "light");
+    }
+  });
 
 /* ON LOAD */
 document.addEventListener("DOMContentLoaded", () => {
@@ -229,6 +258,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  injectQuickActions();
   registerServiceWorker();
   setupInstallPrompt();
 

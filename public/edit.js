@@ -54,7 +54,6 @@ async function loadForm() {
     updateCaloriesTotal(entry.calories_total ?? entry.calories_burned);
 
     document.getElementById('calories_consumed').value = entry.calories_consumed ?? '';
-
     document.getElementById('carbs').value = entry.carbs || '';
     document.getElementById('weight_kg').value = entry.weight_kg || '';
     document.getElementById('mood').value = entry.mood || '';

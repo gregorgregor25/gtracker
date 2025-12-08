@@ -33,10 +33,8 @@ function render() {
 
   filtered.forEach((e) => {
     const tr = document.createElement('tr');
-
     const gymClass = e.gym_done ? 'badge success' : 'badge danger';
     const gymText = e.gym_done ? '✅' : '❌';
-
     const totalCalories = e.calories_total ?? e.calories_burned ?? 0;
     const caloriesConsumed = e.calories_consumed ?? '—';
 

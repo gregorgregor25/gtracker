@@ -58,7 +58,10 @@ body {
   transition: background 0.35s ease, color 0.35s ease;
 }
 
-a { color: inherit; text-decoration: none; }
+a {
+  color: inherit;
+  text-decoration: none;
+}
 
 header {
   position: sticky;
@@ -80,7 +83,10 @@ header {
   margin: 0 auto;
 }
 
-.nav .links { display: flex; gap: 10px; }
+.nav .links {
+  display: flex;
+  gap: 10px;
+}
 
 .nav a {
   padding: 10px 14px;
@@ -136,10 +142,17 @@ main {
 h1 { font-size: 1.6rem; margin: 6px 0 10px; }
 h2 { margin: 0 0 10px; }
 h3 { margin: 12px 0 6px; }
+
 .muted { color: var(--muted); }
 
-.grid { display: grid; gap: 14px; }
-.grid.two { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.grid {
+  display: grid;
+  gap: 14px;
+}
+
+.grid.two {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
 
 .card {
   background: var(--card-bg);
@@ -157,6 +170,30 @@ h3 { margin: 12px 0 6px; }
   box-shadow: 0 20px 50px rgba(15, 23, 42, 0.16);
 }
 
+/* Quick Actions */
+.quick-actions-card {
+  padding: 18px;
+}
+
+.quick-actions-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.quick-actions-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.quick-actions-wrapper {
+  margin-bottom: 16px;
+}
+
+/* Hero */
 .hero {
   display: flex;
   justify-content: space-between;
@@ -177,8 +214,17 @@ h3 { margin: 12px 0 6px; }
   border: 1px solid var(--border);
 }
 
-.badge.success { background: var(--badge-success-bg); color: var(--success); border-color: transparent; }
-.badge.danger { background: var(--badge-danger-bg); color: var(--danger); border-color: transparent; }
+.badge.success {
+  background: var(--badge-success-bg);
+  color: var(--success);
+  border-color: transparent;
+}
+
+.badge.danger {
+  background: var(--badge-danger-bg);
+  color: var(--danger);
+  border-color: transparent;
+}
 
 .stat {
   padding: 12px 14px;
@@ -187,7 +233,11 @@ h3 { margin: 12px 0 6px; }
   border: 1px solid var(--card-border);
 }
 
-.stat strong { font-size: 1.2rem; display: block; margin-top: 4px; }
+.stat strong {
+  font-size: 1.2rem;
+  display: block;
+  margin-top: 4px;
+}
 
 .progress {
   height: 8px;
@@ -245,6 +295,7 @@ h3 { margin: 12px 0 6px; }
   font-weight: 600;
 }
 
+/* Tables */
 .table-wrapper { overflow-x: auto; }
 
 .table {
@@ -261,9 +312,15 @@ h3 { margin: 12px 0 6px; }
   border-bottom: 1px solid var(--card-border);
 }
 
-.table tbody tr:hover { background: rgba(91, 124, 250, 0.08); }
-.table tbody tr:nth-child(even) { background: var(--table-strip); }
+.table tbody tr:hover {
+  background: rgba(91, 124, 250, 0.08);
+}
 
+.table tbody tr:nth-child(even) {
+  background: var(--table-strip);
+}
+
+/* Inputs */
 input,
 select,
 textarea {
@@ -285,6 +342,7 @@ textarea:focus {
   box-shadow: 0 0 0 3px var(--ring);
 }
 
+/* Buttons */
 button,
 .btn {
   border: none;
@@ -299,7 +357,14 @@ button,
 }
 
 button:hover,
-.btn:hover { transform: translateY(-1px); }
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+button:active,
+.btn:active {
+  transform: translateY(0);
+}
 
 button.secondary,
 .btn.secondary {
@@ -323,6 +388,7 @@ button.secondary,
   color: var(--muted);
 }
 
+/* Mood options */
 .mood-options {
   display: flex;
   gap: 8px;
@@ -344,6 +410,7 @@ button.secondary,
   box-shadow: 0 0 0 3px var(--ring);
 }
 
+/* Toast */
 .toast {
   position: fixed;
   bottom: 20px;
@@ -364,6 +431,7 @@ button.secondary,
   transform: translate(-50%, -6px);
 }
 
+/* Badge cards */
 .badge-card {
   display: grid;
   grid-template-columns: 56px 1fr;
@@ -381,7 +449,9 @@ button.secondary,
   border-color: rgba(91, 124, 250, 0.35);
 }
 
-.badge-card.locked { opacity: 0.85; }
+.badge-card.locked {
+  opacity: 0.85;
+}
 
 .badge-icon {
   width: 56px;
@@ -389,7 +459,12 @@ button.secondary,
   border-radius: 16px;
   display: grid;
   place-items: center;
+  background: var(--card-bg);
   font-size: 1.4rem;
+}
+
+.badge-content h3 {
+  margin: 0;
 }
 
 .badge-status {
@@ -412,11 +487,22 @@ button.secondary,
   gap: 8px;
 }
 
-.hero-title { font-size: 1.2rem; margin: 0; }
-.headline { font-weight: 700; font-size: 1.3rem; }
+.hero-title {
+  font-size: 1.2rem;
+  margin: 0;
+}
 
-.install-btn { background: var(--install-bg); color: #fff; }
+.headline {
+  font-weight: 700;
+  font-size: 1.3rem;
+}
 
+.install-btn {
+  background: var(--install-bg);
+  color: #fff;
+}
+
+/* Animations */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
@@ -431,6 +517,7 @@ button.secondary,
   .circle-progress { margin: 0 auto; }
 }
 
+/* Confetti */
 .confetti-piece {
   position: fixed;
   width: 10px;
@@ -448,6 +535,7 @@ button.secondary,
   }
 }
 
+/* Ribbon */
 .ribbon {
   position: absolute;
   top: 12px;
@@ -459,6 +547,7 @@ button.secondary,
   font-weight: 700;
 }
 
+/* Insight cards */
 .insight-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -481,10 +570,16 @@ button.secondary,
   box-shadow: 0 18px 42px rgba(15, 23, 42, 0.12);
 }
 
-.mini-card strong { font-size: 1.1rem; display: block; }
+.mini-card strong {
+  font-size: 1.1rem;
+  display: block;
+}
 
-.mini-card .badge { margin-bottom: 8px; }
+.mini-card .badge {
+  margin-bottom: 8px;
+}
 
+/* Heatmap */
 .heatmap {
   display: flex;
   gap: 6px;
@@ -492,7 +587,11 @@ button.secondary,
   padding: 10px 0 6px;
 }
 
-.week { display: flex; flex-direction: column; gap: 6px; }
+.week {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 
 .day {
   width: 18px;
@@ -523,6 +622,28 @@ button.secondary,
   border-radius: 50%;
   background: var(--success);
   box-shadow: 0 0 0 2px rgba(255,255,255,0.5);
+}
+
+/* Heatmap tooltip */
+.heatmap-tooltip {
+  position: absolute;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  box-shadow: var(--shadow);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  font-size: 0.9rem;
+  z-index: 15;
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .legend-item {

@@ -13,7 +13,8 @@ async function loadToday() {
     updateMoodBadge(entry.mood);
 
     const previousGym = localStorage.getItem('gtracker-lastGym') === 'true';
-    const previousTreadGoal = localStorage.getItem('gtracker-lastTreadGoal') === 'true';
+    const previousTreadGoal =
+      localStorage.getItem('gtracker-lastTreadGoal') === 'true';
 
     const gymBadge = document.getElementById('gym-status');
     if (entry.gym_done) {
@@ -32,7 +33,6 @@ async function loadToday() {
 
     const caloriesGym = entry.calories_gym ?? 0;
     const caloriesTread = entry.calories_treadmill ?? 0;
-
     const caloriesTotal =
       entry.calories_total ??
       entry.calories_burned ??
@@ -43,12 +43,18 @@ async function loadToday() {
     document.getElementById('stat-calories-total').textContent = caloriesTotal;
 
     document.getElementById('stat-carbs').textContent = entry.carbs || 0;
-    document.getElementById('stat-weight').textContent = formatNumber(entry.weight_kg, 1);
-    document.getElementById('stat-treadmill').textContent = entry.treadmill_minutes || 0;
+    document.getElementById('stat-weight').textContent = formatNumber(
+      entry.weight_kg,
+      1
+    );
+    document.getElementById('stat-treadmill').textContent =
+      entry.treadmill_minutes || 0;
 
     const progress = Math.min(
       100,
-      Math.round(((entry.treadmill_minutes || 0) / TREADMILL_GOAL) * 100)
+      Math.round(
+        ((entry.treadmill_minutes || 0) / TREADMILL_GOAL) * 100
+      )
     );
     document.getElementById('treadmill-progress').style.width = `${progress}%`;
     animateRing(document.getElementById('treadmill-ring'), progress);
@@ -88,7 +94,7 @@ async function loadSummary() {
       fetchJSON('/api/summary/week'),
       fetchJSON('/api/summary/streaks'),
       fetchJSON('/api/entries'),
-      fetchJSON('/api/summary/daily-goal')
+      fetchJSON('/api/summary/daily-goal'),
     ]);
 
     document.getElementById('current-streak').textContent =
@@ -131,20 +137,19 @@ async function loadSummary() {
 
     const achievementArea = document.getElementById('achievement-badges');
     achievementArea.innerHTML = '';
-    if (streaks.current_gym_streak >= 5)
+    if (streaks.current_gym_streak >= 5) {
       addAchievement(achievementArea, '🏆', '5-day streak');
-    if (summary.treadmill_days >= 3)
-      addAchievement(
-        achievementArea,
-        '🚶‍♂️',
-        '3 treadmill sessions'
-      );
-    if ((summary.entries || []).length >= 7)
+    }
+    if (summary.treadmill_days >= 3) {
+      addAchievement(achievementArea, '🚶‍♂️', '3 treadmill sessions');
+    }
+    if ((summary.entries || []).length >= 7) {
       addAchievement(
         achievementArea,
         '🗓️',
         'Logged every day this week'
       );
+    }
 
     const storedBest = Number(localStorage.getItem('gtracker-bestStreak') || 0);
     if (streaks.longest_gym_streak > storedBest) {
@@ -156,10 +161,7 @@ async function loadSummary() {
       );
     }
 
-    //
-    // DAILY ENERGY SECTION
-    //
-
+    // Daily energy stats
     const target = Math.round(dailyGoal.recommended_calories || 0);
 
     const burnedToday = Math.round(
@@ -202,7 +204,6 @@ async function loadSummary() {
     document.getElementById(
       'energy-note'
     ).textContent = `Eaten: ${consumedToday} kcal • Burned: ${burnedToday} kcal • Net: ${netToday} kcal (${surplusLabel}) • Target: ${target} kcal`;
-
   } catch (err) {
     document.getElementById('consistency-label').textContent =
       'Unable to load summary';
