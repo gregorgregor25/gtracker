@@ -66,31 +66,50 @@ async function loadWeekly() {
 function renderWeeklyStats(entries) {
   const totals = entries.reduce(
     (acc, e) => {
+      // Calories (merged logic: prefer calories_total, fallback to calories_burned)
       acc.calories += e.calories_total ?? e.calories_burned ?? 0;
+
       acc.treadmill += e.treadmill_minutes || 0;
       acc.gymDays += e.gym_done ? 1 : 0;
+
       if (e.weight_kg !== null && e.weight_kg !== undefined) {
         acc.weightValues.push(e.weight_kg);
       }
+
       if (e.mood) acc.moods.push(e.mood);
+
       acc.dailyScores.push(dailyScore(e));
+
       if ((e.treadmill_minutes || 0) >= TREADMILL_GOAL) acc.treadGoalHits += 1;
+
       if (e.carbs || e.carbs === 0) {
         if (acc.lowestCarbs === null || e.carbs < acc.lowestCarbs.value) {
           acc.lowestCarbs = { value: e.carbs, date: e.date };
         }
       }
+
       return acc;
     },
-    { calories: 0, treadmill: 0, gymDays: 0, weightValues: [], moods: [], dailyScores: [], treadGoalHits: 0, lowestCarbs: null }
+    {
+      calories: 0,
+      treadmill: 0,
+      gymDays: 0,
+      weightValues: [],
+      moods: [],
+      dailyScores: [],
+      treadGoalHits: 0,
+      lowestCarbs: null,
+    }
   );
 
   const avgWeight = totals.weightValues.length
     ? (totals.weightValues.reduce((a, b) => a + b, 0) / totals.weightValues.length).toFixed(1)
     : '—';
+
   const consistency = totals.dailyScores.length
     ? Math.round(totals.dailyScores.reduce((a, b) => a + b, 0) / totals.dailyScores.length)
     : 0;
+
   const bestMood = selectBestMood(totals.moods);
   const bestDay = selectBestDay(entries);
 
@@ -101,6 +120,7 @@ function renderWeeklyStats(entries) {
   document.getElementById('weekly-consistency').textContent = `${consistency}%`;
   document.getElementById('weekly-consistency-progress').style.width = `${consistency}%`;
   document.getElementById('weekly-consistency-label').textContent = motivationalText(consistency);
+
   document.getElementById('weekly-mood').textContent = bestMood.label;
   document.getElementById('best-mood-badge').textContent = `Mood: ${bestMood.label}`;
 
@@ -108,16 +128,24 @@ function renderWeeklyStats(entries) {
   document.getElementById('insight-best-day-detail').textContent = bestDay
     ? `Consistency score ${bestDay.score}%`
     : 'Log more days to unlock this insight';
+
   document.getElementById('insight-tread-goal').textContent = `${totals.treadGoalHits} day(s)`;
+
   document.getElementById('insight-carbs').textContent = totals.lowestCarbs
     ? `${totals.lowestCarbs.value}g`
     : '—';
+
   document.getElementById('insight-carbs-detail').textContent = totals.lowestCarbs
     ? `Lowest on ${totals.lowestCarbs.date}`
     : 'No carb data yet';
 
   const status = document.getElementById('weekly-status');
-  status.textContent = consistency >= 80 ? 'You are on fire this week' : consistency >= 60 ? 'Solid groove' : 'Fresh start in progress';
+  status.textContent =
+    consistency >= 80
+      ? 'You are on fire this week'
+      : consistency >= 60
+      ? 'Solid groove'
+      : 'Fresh start in progress';
 }
 
 function selectBestMood(moods) {
@@ -126,21 +154,26 @@ function selectBestMood(moods) {
   moods.forEach((mood) => {
     if (best === null || order.indexOf(mood) > order.indexOf(best)) best = mood;
   });
+
   if (!best) return { label: '—' };
-  const emoji = { low: '🌥️', ok: '🙂', good: '😄', great: '🤩' }[best] || '';
+
+  const emoji = {
+    low: '🌥️',
+    ok: '🙂',
+    good: '😄',
+    great: '🤩',
+  }[best];
+
   return { label: `${best}${emoji ? ' ' + emoji : ''}` };
 }
 
 function selectBestDay(entries) {
   if (!entries.length) return null;
-  return entries.reduce(
-    (best, e) => {
-      const score = dailyScore(e);
-      if (!best || score > best.score) return { date: e.date, score };
-      return best;
-    },
-    null
-  );
+  return entries.reduce((best, e) => {
+    const score = dailyScore(e);
+    if (!best || score > best.score) return { date: e.date, score };
+    return best;
+  }, null);
 }
 
 function renderDailyCards(entries) {
@@ -153,14 +186,25 @@ function renderDailyCards(entries) {
     .forEach((entry) => {
       const card = document.createElement('div');
       card.className = 'mini-card';
-      const weightLabel = entry.weight_kg || entry.weight_kg === 0 ? entry.weight_kg.toFixed(1) : '—';
+
+      const weightLabel =
+        entry.weight_kg || entry.weight_kg === 0
+          ? entry.weight_kg.toFixed(1)
+          : '—';
+
       card.innerHTML = `
         <div class="flex" style="justify-content: space-between; align-items:center;">
           <strong>${entry.date}</strong>
-          <span class="badge ${entry.gym_done ? 'success' : 'danger'}">${entry.gym_done ? 'Gym ✔️' : 'Gym ❌'}</span>
+          <span class="badge ${entry.gym_done ? 'success' : 'danger'}">
+            ${entry.gym_done ? 'Gym ✔️' : 'Gym ❌'}
+          </span>
         </div>
-        <div class="muted">Calories: ${entry.calories_total ?? entry.calories_burned ?? 0} • Carbs: ${entry.carbs || 0}g</div>
-        <div class="muted">Treadmill: ${entry.treadmill_minutes || 0} min • Weight: ${weightLabel} kg</div>
+        <div class="muted">
+          Calories: ${entry.calories_total ?? entry.calories_burned ?? 0} • Carbs: ${entry.carbs || 0}g
+        </div>
+        <div class="muted">
+          Treadmill: ${entry.treadmill_minutes || 0} min • Weight: ${weightLabel} kg
+        </div>
         <div class="progress" aria-label="Daily consistency">
           <span style="width:${dailyScore(entry)}%"></span>
         </div>

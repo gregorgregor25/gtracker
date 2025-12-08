@@ -32,10 +32,11 @@ async function loadToday() {
 
     const caloriesGym = entry.calories_gym ?? 0;
     const caloriesTread = entry.calories_treadmill ?? 0;
-    const caloriesTotal = entry.calories_total ?? entry.calories_burned ?? caloriesGym + caloriesTread;
+    const caloriesTotal = entry.calories_total ?? entry.calories_burned ?? (caloriesGym + caloriesTread);
     document.getElementById('stat-calories-gym').textContent = caloriesGym;
     document.getElementById('stat-calories-tread').textContent = caloriesTread;
     document.getElementById('stat-calories-total').textContent = caloriesTotal;
+
     document.getElementById('stat-carbs').textContent = entry.carbs || 0;
     document.getElementById('stat-weight').textContent = formatNumber(entry.weight_kg, 1);
     document.getElementById('stat-treadmill').textContent = entry.treadmill_minutes || 0;
@@ -44,11 +45,12 @@ async function loadToday() {
     document.getElementById('treadmill-progress').style.width = `${progress}%`;
     animateRing(document.getElementById('treadmill-ring'), progress);
 
-    const message = entry.gym_done && entry.treadmill_minutes >= TREADMILL_GOAL
-      ? 'You smashed it today! Perfect training day!'
-      : entry.gym_done
-      ? 'Great job hitting the gym!'
-      : 'You got this. Gym time awaits.';
+    const message =
+      entry.gym_done && entry.treadmill_minutes >= TREADMILL_GOAL
+        ? 'You smashed it today! Perfect training day!'
+        : entry.gym_done
+        ? 'Great job hitting the gym!'
+        : 'You got this. Gym time awaits.';
     document.getElementById('today-message').textContent = message;
 
     if (entry.gym_done && entry.treadmill_minutes >= TREADMILL_GOAL && !previousTreadGoal) {
@@ -122,6 +124,7 @@ async function loadSummary() {
     document.getElementById('stat-tdee').textContent = Math.round(dailyGoal.tdee || 0);
     document.getElementById('stat-target').textContent = target;
     document.getElementById('stat-net').textContent = remaining;
+
     const netStatus = document.getElementById('net-status');
     netStatus.classList.remove('success', 'danger');
     if (remaining >= 0) {
