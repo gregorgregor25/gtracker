@@ -104,11 +104,7 @@ header {
 }
 
 .nav a.active {
-  background: linear-gradient(
-    135deg,
-    rgba(91, 124, 250, 0.2),
-    rgba(124, 58, 237, 0.2)
-  );
+  background: linear-gradient(135deg, rgba(91, 124, 250, 0.2), rgba(124, 58, 237, 0.2));
   border-color: var(--border);
 }
 
@@ -127,10 +123,10 @@ header {
   padding: 8px 12px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: var(--shadow);
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  box-shadow: var(--shadow);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -187,7 +183,6 @@ h3 {
   box-shadow: 0 20px 50px rgba(15, 23, 42, 0.16);
 }
 
-/* Quick Actions */
 .quick-actions-card {
   padding: 18px;
 }
@@ -197,7 +192,6 @@ h3 {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 8px;
 }
 
 .quick-actions-buttons {
@@ -210,7 +204,6 @@ h3 {
   margin-bottom: 16px;
 }
 
-/* Hero */
 .hero {
   display: flex;
   justify-content: space-between;
@@ -246,11 +239,7 @@ h3 {
 .stat {
   padding: 12px 14px;
   border-radius: 14px;
-  background: linear-gradient(
-    145deg,
-    rgba(91, 124, 250, 0.08),
-    rgba(124, 58, 237, 0.06)
-  );
+  background: linear-gradient(145deg, rgba(91, 124, 250, 0.08), rgba(124, 58, 237, 0.06));
   border: 1px solid var(--card-border);
 }
 
@@ -289,11 +278,7 @@ h3 {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: conic-gradient(
-    var(--accent) 0deg,
-    var(--accent-2) 0deg,
-    rgba(255, 255, 255, 0.1) 0deg
-  );
+  background: conic-gradient(var(--accent) 0deg, var(--accent-2) 0deg, rgba(255, 255, 255, 0.1) 0deg);
   position: relative;
 }
 
@@ -315,16 +300,11 @@ h3 {
 .banner {
   padding: 12px 14px;
   border-radius: 12px;
-  background: linear-gradient(
-    135deg,
-    rgba(91, 124, 250, 0.15),
-    rgba(124, 58, 237, 0.12)
-  );
+  background: linear-gradient(135deg, rgba(91, 124, 250, 0.15), rgba(124, 58, 237, 0.12));
   border: 1px solid var(--card-border);
   font-weight: 600;
 }
 
-/* Tables */
 .table-wrapper {
   overflow-x: auto;
 }
@@ -351,7 +331,6 @@ h3 {
   background: var(--table-strip);
 }
 
-/* Inputs */
 input,
 select,
 textarea {
@@ -373,7 +352,6 @@ textarea:focus {
   box-shadow: 0 0 0 3px var(--ring);
 }
 
-/* Buttons */
 button,
 .btn {
   border: none;
@@ -419,7 +397,6 @@ button.secondary,
   color: var(--muted);
 }
 
-/* Mood options */
 .mood-options {
   display: flex;
   gap: 8px;
@@ -441,7 +418,6 @@ button.secondary,
   box-shadow: 0 0 0 3px var(--ring);
 }
 
-/* Toast */
 .toast {
   position: fixed;
   bottom: 20px;
@@ -462,16 +438,15 @@ button.secondary,
   transform: translate(-50%, -6px);
 }
 
-/* Badge cards */
 .badge-card {
   display: grid;
   grid-template-columns: 56px 1fr;
   gap: 12px;
   align-items: flex-start;
   padding: 12px;
-  border-radius: 14px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
+  border-radius: 14px;
   box-shadow: var(--shadow);
 }
 
@@ -494,28 +469,15 @@ button.secondary,
   font-size: 1.4rem;
 }
 
-.badge-content h3 {
-  margin: 0;
-}
-
 .badge-status {
   font-size: 0.9rem;
   color: var(--muted);
 }
 
-.badge.subtle {
-  background: var(--card-bg);
-  color: var(--text);
-}
-
 .achievement {
   padding: 10px 12px;
   border-radius: 12px;
-  background: linear-gradient(
-    135deg,
-    rgba(22, 163, 74, 0.1),
-    rgba(91, 124, 250, 0.1)
-  );
+  background: linear-gradient(135deg, rgba(22, 163, 74, 0.1), rgba(91, 124, 250, 0.1));
   border: 1px solid var(--card-border);
   display: inline-flex;
   align-items: center;
@@ -537,7 +499,6 @@ button.secondary,
   color: #fff;
 }
 
-/* Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -569,7 +530,6 @@ button.secondary,
   }
 }
 
-/* Confetti */
 .confetti-piece {
   position: fixed;
   width: 10px;
@@ -587,7 +547,6 @@ button.secondary,
   }
 }
 
-/* Ribbon */
 .ribbon {
   position: absolute;
   top: 12px;
@@ -599,7 +558,6 @@ button.secondary,
   font-weight: 700;
 }
 
-/* Insight cards */
 .insight-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -631,7 +589,6 @@ button.secondary,
   margin-bottom: 8px;
 }
 
-/* Heatmap */
 .heatmap {
   display: flex;
   gap: 6px;
@@ -665,27 +622,15 @@ button.secondary,
 }
 
 .day.level-1 {
-  background: linear-gradient(
-    135deg,
-    rgba(91, 124, 250, 0.25),
-    rgba(124, 58, 237, 0.18)
-  );
+  background: linear-gradient(135deg, rgba(91, 124, 250, 0.25), rgba(124, 58, 237, 0.18));
 }
 
 .day.level-2 {
-  background: linear-gradient(
-    135deg,
-    rgba(91, 124, 250, 0.45),
-    rgba(124, 58, 237, 0.38)
-  );
+  background: linear-gradient(135deg, rgba(91, 124, 250, 0.45), rgba(124, 58, 237, 0.38));
 }
 
 .day.level-3 {
-  background: linear-gradient(
-    135deg,
-    rgba(91, 124, 250, 0.7),
-    rgba(124, 58, 237, 0.6)
-  );
+  background: linear-gradient(135deg, rgba(91, 124, 250, 0.7), rgba(124, 58, 237, 0.6));
 }
 
 .gym-dot {
@@ -699,7 +644,6 @@ button.secondary,
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
 }
 
-/* Heatmap tooltip */
 .heatmap-tooltip {
   position: absolute;
   background: var(--card-bg);
@@ -714,7 +658,6 @@ button.secondary,
   z-index: 15;
 }
 
-/* Legend */
 .legend {
   display: flex;
   gap: 10px;
@@ -725,8 +668,8 @@ button.secondary,
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--muted);
   font-size: 0.9rem;
+  color: var(--muted);
 }
 
 .legend-box {
@@ -742,25 +685,47 @@ button.secondary,
 }
 
 .legend-box.level-1 {
-  background: linear-gradient(
-    135deg,
-    rgba(91, 124, 250, 0.25),
-    rgba(124, 58, 237, 0.18)
-  );
+  background: linear-gradient(135deg, rgba(91, 124, 250, 0.25), rgba(124, 58, 237, 0.18));
 }
 
 .legend-box.level-2 {
-  background: linear-gradient(
-    135deg,
-    rgba(91, 124, 250, 0.45),
-    rgba(124, 58, 237, 0.38)
-  );
+  background: linear-gradient(135deg, rgba(91, 124, 250, 0.45), rgba(124, 58, 237, 0.38));
 }
 
 .legend-box.level-3 {
-  background: linear-gradient(
-    135deg,
-    rgba(91, 124, 250, 0.7),
-    rgba(124, 58, 237, 0.6)
-  );
+  background: linear-gradient(135deg, rgba(91, 124, 250, 0.7), rgba(124, 58, 237, 0.6));
+}
+
+/* Glucose Unit Pill Toggle */
+.pill-toggle {
+  display: inline-flex;
+  gap: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  padding: 6px;
+  border-radius: 999px;
+}
+
+.pill-toggle button {
+  border: none;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.pill-toggle button.active {
+  background: linear-gradient(135deg, rgba(91, 124, 250, 0.2), rgba(124, 58, 237, 0.15));
+  color: var(--text);
+  box-shadow: 0 10px 30px rgba(91, 124, 250, 0.15);
+}
+
+.card-lite {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 12px 14px;
 }

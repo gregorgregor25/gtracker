@@ -20,6 +20,7 @@
         <a id="nav-calendar" href="calendar.html">Calendar</a>
         <a id="nav-weekly" href="weekly.html">Weekly</a>
         <a id="nav-badges" href="badges.html">Badges</a>
+        <a id="nav-glucose" href="glucose.html">Glucose</a>
         <a id="nav-profile" href="profile.html">Profile</a>
         <a id="nav-weight" href="weight.html">Weight</a>
       </div>
@@ -52,7 +53,6 @@
     </div>
 
     <section class="grid two" style="margin-top:16px;">
-      <!-- TODAY CARD -->
       <div class="card" id="today-card">
         <div class="flex" style="justify-content: space-between;">
           <h2>Today</h2>
@@ -101,7 +101,6 @@
         <div class="flex" style="margin-top:10px;" id="achievement-badges"></div>
       </div>
 
-      <!-- CONSISTENCY CARD -->
       <div class="card">
         <h2>Streaks & Consistency</h2>
 
@@ -131,7 +130,6 @@
         <div class="flex" id="badge-container"></div>
       </div>
 
-      <!-- DAILY ENERGY CARD -->
       <div class="card" id="energy-card">
         <div class="flex" style="justify-content: space-between;">
           <h2>Daily Energy</h2>
@@ -173,18 +171,20 @@
         <p class="muted" id="energy-note"></p>
       </div>
 
-      <!-- GLUCOSE CARD (new feature) -->
       <div class="card" id="glucose-card">
         <div class="flex" style="justify-content: space-between; align-items: center;">
           <h2>Glucose (info)</h2>
           <button class="btn secondary" id="glucose-refresh" type="button">Refresh</button>
         </div>
+
         <div class="stat" style="margin-top:12px;">
           <div>Current reading</div>
           <strong id="glucose-value">—</strong>
         </div>
+
         <div class="muted" id="glucose-trend">Trend: —</div>
         <div class="muted" id="glucose-time">Updated: —</div>
+
         <p class="muted" style="margin-top:10px;">
           For awareness and tracking only — not for medical dosing.
         </p>

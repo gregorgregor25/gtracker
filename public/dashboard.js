@@ -1,11 +1,11 @@
 const TREADMILL_GOAL = 120;
+const GLUCOSE_INTERVAL_MS = 5 * 60 * 1000;
+let glucoseRefreshTimer = null;
 
 (async function init() {
   setActiveNav('nav-dashboard');
   await loadToday();
   await loadSummary();
-
-  // Glucose feature (Codex addition)
   await loadGlucose();
   const refresh = document.getElementById('glucose-refresh');
   if (refresh) {
@@ -48,7 +48,6 @@ async function loadToday() {
     document.getElementById('stat-calories-gym').textContent = caloriesGym;
     document.getElementById('stat-calories-tread').textContent = caloriesTread;
     document.getElementById('stat-calories-total').textContent = caloriesTotal;
-
     document.getElementById('stat-carbs').textContent = entry.carbs || 0;
     document.getElementById('stat-weight').textContent = formatNumber(
       entry.weight_kg,
@@ -167,15 +166,12 @@ async function loadSummary() {
     }
 
     const target = Math.round(dailyGoal.recommended_calories || 0);
-
     const burnedToday = Math.round(
       dailyGoal.today_total_burned ||
         dailyGoal.calories_burned ||
         0
     );
-
     const consumedToday = Math.round(dailyGoal.calories_consumed || 0);
-
     const netToday = Math.round(
       dailyGoal.net_calories ?? (consumedToday - burnedToday)
     );
@@ -255,10 +251,30 @@ async function loadGlucose(fromButton = false) {
 
     const time = reading.timestamp ? new Date(reading.timestamp) : null;
     timeEl.textContent = time ? `Updated: ${time.toLocaleString()}` : 'Updated: —';
+
+    scheduleNextGlucoseRefresh(time ? time.getTime() : null);
   } catch (err) {
     console.error('Glucose fetch failed', err);
     valueEl.textContent = 'Unavailable';
     trendEl.textContent = 'Could not fetch current glucose from LibreLinkUp.';
     timeEl.textContent = 'Updated: —';
+
+    scheduleNextGlucoseRefresh(null);
   }
+}
+
+function scheduleNextGlucoseRefresh(lastTimestamp) {
+  if (glucoseRefreshTimer) {
+    clearTimeout(glucoseRefreshTimer);
+  }
+
+  let delay = GLUCOSE_INTERVAL_MS;
+
+  if (lastTimestamp) {
+    const targetTime = lastTimestamp + GLUCOSE_INTERVAL_MS;
+    const untilTarget = targetTime - Date.now();
+    delay = Math.max(30 * 1000, untilTarget);
+  }
+
+  glucoseRefreshTimer = setTimeout(() => loadGlucose(), delay + 10 * 1000);
 }

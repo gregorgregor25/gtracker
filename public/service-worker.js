@@ -1,4 +1,5 @@
-const CACHE_NAME = 'gtracker-cache-v6';
+// Increment this when assets change
+const CACHE_NAME = 'gtracker-cache-v8';
 
 const ASSETS = [
   '/',
@@ -8,8 +9,10 @@ const ASSETS = [
   '/calendar.html',
   '/weekly.html',
   '/badges.html',
+  '/glucose.html',
   '/profile.html',
   '/weight.html',
+
   '/style.css',
   '/main.js',
   '/dashboard.js',
@@ -18,37 +21,36 @@ const ASSETS = [
   '/calendar.js',
   '/weekly.js',
   '/badges.js',
+  '/glucose.js',
   '/profile.js',
   '/weight.js',
+
   '/manifest.json',
   '/icons/gtracker-192.svg',
   '/icons/gtracker-512.svg',
 ];
 
-// INSTALL
+/* INSTALL */
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
 });
 
-// ACTIVATE — clean old caches
+/* ACTIVATE — remove old caches */
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(
-        keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
-      )
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
     )
   );
 });
 
-// FETCH — cache first, fallback to network
+/* FETCH — cache-first strategy */
 self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  if (request.method !== 'GET') return;
+  if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    caches.match(request).then((cached) => cached || fetch(request))
+    caches.match(event.request).then((cached) => cached || fetch(event.request))
   );
 });

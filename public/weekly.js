@@ -8,7 +8,6 @@ const TREADMILL_GOAL = 120;
 function startOfWeek(date = new Date()) {
   const d = new Date(date);
   const day = d.getDay();
-  // Monday as first day of week
   const diff = d.getDate() - day + (day === 0 ? -6 : 1);
   const start = new Date(d);
   start.setDate(diff);
@@ -145,7 +144,6 @@ function renderWeeklyStats(entries) {
     totals.caloriesConsumed;
   document.getElementById("weekly-calories-consumed-avg").textContent =
     Math.round(totals.caloriesConsumed / entries.length);
-
   document.getElementById("weekly-treadmill").textContent = totals.treadmill;
   document.getElementById("weekly-weight").textContent = avgWeight;
   document.getElementById("weekly-gym-days").textContent = totals.gymDays;

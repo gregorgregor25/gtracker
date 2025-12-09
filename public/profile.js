@@ -7,11 +7,14 @@ setActiveNav('nav-profile');
   } catch (err) {
     showBanner('Unable to load profile', true);
   }
+
   await loadLibreLinkConfig();
 })();
 
+/* PROFILE SAVE */
 document.getElementById('profile-form').addEventListener('submit', async (e) => {
   e.preventDefault();
+
   const payload = {
     age: document.getElementById('age').value,
     sex: document.getElementById('sex').value,
@@ -19,11 +22,13 @@ document.getElementById('profile-form').addEventListener('submit', async (e) => 
     goal_weight: document.getElementById('goal_weight').value,
     activity_level: document.getElementById('activity_level').value,
   };
+
   try {
     await fetchJSON('/api/profile', {
       method: 'POST',
       body: JSON.stringify(payload),
     });
+
     showBanner('Profile saved');
     showToast('Profile updated');
   } catch (err) {
@@ -36,8 +41,7 @@ function fillForm(profile) {
   document.getElementById('sex').value = profile.sex || 'male';
   document.getElementById('height_cm').value = profile.height_cm ?? '';
   document.getElementById('goal_weight').value = profile.goal_weight ?? '';
-  document.getElementById('activity_level').value =
-    profile.activity_level || 'moderate';
+  document.getElementById('activity_level').value = profile.activity_level || 'moderate';
 }
 
 function showBanner(text, danger = false) {
@@ -48,23 +52,27 @@ function showBanner(text, danger = false) {
   banner.style.color = danger ? '#991b1b' : '#075985';
 }
 
+/* LOAD LIBRELINKUP CONFIG */
 async function loadLibreLinkConfig() {
   try {
     const cfg = await fetchJSON('/api/glucose/config');
     const statusEl = document.getElementById('llu-status');
+
     if (cfg.ok && cfg.configured) {
-      statusEl.textContent = `Configured for ${
-        cfg.email || 'your account'
-      } (${cfg.region || 'default region'} / ${cfg.tld || 'io'})`;
+      statusEl.textContent = `Configured for ${cfg.email || 'your account'} (${cfg.region || 'default region'} / ${cfg.tld || 'io'})`;
       statusEl.style.background = '#e0f2fe';
       statusEl.style.color = '#075985';
     } else {
-      statusEl.textContent =
-        'LibreLinkUp not configured yet. Enter your login to enable glucose fetches.';
+      statusEl.textContent = 'LibreLinkUp not configured yet. Enter your login to enable glucose fetches.';
       statusEl.style.background = '#fff7ed';
       statusEl.style.color = '#9a3412';
     }
+
     statusEl.style.display = 'block';
+
+    // ⭐ Restore unit toggle state
+    setUnitPreference(cfg.unit || 'mg/dL');
+
   } catch (err) {
     const statusEl = document.getElementById('llu-status');
     statusEl.textContent = 'Unable to load LibreLinkUp configuration.';
@@ -74,33 +82,55 @@ async function loadLibreLinkConfig() {
   }
 }
 
+/* SAVE LLU CONFIG */
 document.getElementById('llu-form').addEventListener('submit', async (e) => {
   e.preventDefault();
+
   const payload = {
     email: document.getElementById('llu-email').value.trim(),
     password: document.getElementById('llu-password').value,
     region: document.getElementById('llu-region').value.trim(),
     tld: document.getElementById('llu-tld').value.trim(),
+    unit: document.getElementById('llu-unit').value,   // ⭐ required
   };
+
   const statusEl = document.getElementById('llu-status');
+
   try {
     const res = await fetchJSON('/api/glucose/config', {
       method: 'POST',
       body: JSON.stringify(payload),
     });
-    statusEl.textContent = `Saved. Configured for ${
-      res.email || 'your account'
-    } (${res.region || 'default region'} / ${res.tld || 'io'}).`;
+
+    statusEl.textContent = `Saved. Configured for ${res.email || 'your account'} (${res.region || 'default region'} / ${res.tld || 'io'}).`;
     statusEl.style.display = 'block';
     statusEl.style.background = '#e0f2fe';
     statusEl.style.color = '#075985';
+
+    // ⭐ Update UI toggle after save
+    setUnitPreference(res.unit || payload.unit);
+
     showToast('LibreLinkUp credentials saved');
     document.getElementById('llu-password').value = '';
   } catch (err) {
-    statusEl.textContent =
-      'Could not save LibreLinkUp credentials. Please check your details and try again.';
+    statusEl.textContent = 'Could not save LibreLinkUp credentials. Please check your details and try again.';
     statusEl.style.display = 'block';
     statusEl.style.background = '#fee2e2';
     statusEl.style.color = '#991b1b';
   }
 });
+
+/* UNIT TOGGLE HANDLING */
+document.querySelectorAll('#llu-unit-toggle button').forEach((btn) => {
+  btn.addEventListener('click', () => setUnitPreference(btn.dataset.unit));
+});
+
+function setUnitPreference(unit) {
+  const normalized = unit && unit.toLowerCase().includes('mmol') ? 'mmol/L' : 'mg/dL';
+
+  document.getElementById('llu-unit').value = normalized;
+
+  document.querySelectorAll('#llu-unit-toggle button').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.unit === normalized);
+  });
+}

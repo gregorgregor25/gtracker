@@ -11,6 +11,7 @@ let cachedTld = process.env.LLU_TLD || 'io';
 let cachedUserId = null;
 let cachedPatientId = null;
 let overrideCredentials = null;
+let preferredUnit = 'mg/dL';
 
 function requireConfig() {
   const source = overrideCredentials || {
@@ -18,6 +19,7 @@ function requireConfig() {
     password: process.env.LLU_PASSWORD,
     region: process.env.LLU_REGION,
     tld: process.env.LLU_TLD,
+    unit: preferredUnit,
   };
   const email = source.email;
   const password = source.password;
@@ -30,7 +32,17 @@ function requireConfig() {
   if (source.tld !== undefined && source.tld !== null) {
     cachedTld = source.tld || 'io';
   }
+  if (source.unit) {
+    preferredUnit = normalizeUnit(source.unit);
+  }
   return { email, password };
+}
+
+function normalizeUnit(unit) {
+  if (!unit) return 'mg/dL';
+  const value = String(unit).toLowerCase();
+  if (value.includes('mmol')) return 'mmol/L';
+  return 'mg/dL';
 }
 
 function resolveBaseUrl(regionOverride) {
@@ -202,16 +214,76 @@ function extractMeasurement(json) {
         measurement.ReadingDate ||
         measurement.timestamp ||
         candidate.timestamp;
-      return {
+      return applyUnitPreference({
         value,
         unit: unit || 'mg/dL',
         trend: trend || 'Unknown',
         timestamp: timestamp || null,
         raw: measurement,
-      };
+      });
     }
   }
   throw new Error('LibreLinkUp glucose measurement missing from response.');
+}
+
+function applyUnitPreference(measurement) {
+  if (!measurement || measurement.value === undefined || measurement.value === null) return measurement;
+  const currentUnit = (measurement.unit || 'mg/dL').toLowerCase();
+  const target = preferredUnit;
+  let convertedValue = measurement.value;
+  if (target === 'mmol/L' && currentUnit.includes('mg')) {
+    convertedValue = Number(measurement.value) / 18;
+  } else if (target === 'mg/dL' && currentUnit.includes('mmol')) {
+    convertedValue = Number(measurement.value) * 18;
+  }
+  return {
+    ...measurement,
+    value: Math.round(convertedValue * 10) / 10,
+    unit: target,
+  };
+}
+
+function extractSeries(json) {
+  const candidates = [json?.data?.connection, json?.data, json?.connection, json?.graph?.connection];
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    const series =
+      candidate.glucoseMeasurementHistory ||
+      candidate.glucoseMeasurements ||
+      candidate.measurements ||
+      candidate.glucoseData ||
+      [];
+    if (Array.isArray(series) && series.length) {
+      return series
+        .map((measurement) => {
+          const value =
+            measurement.Value ??
+            measurement.value ??
+            measurement.ValueInMgPerDl ??
+            measurement.GlucoseValue ??
+            measurement.glucose;
+          const unit = measurement.Unit ?? measurement.unit ?? (measurement.ValueInMgPerDl ? 'mg/dL' : candidate.unit);
+          const trend = measurement.TrendArrow ?? measurement.trendArrow ?? measurement.Trend ?? measurement.trend ?? candidate.trend;
+          const timestamp =
+            measurement.Timestamp ||
+            measurement.MeasurementDate ||
+            measurement.TimeStamp ||
+            measurement.FactoryTimestamp ||
+            measurement.ReadingDate ||
+            measurement.timestamp ||
+            candidate.timestamp;
+          return applyUnitPreference({
+            value,
+            unit: unit || 'mg/dL',
+            trend: trend || 'Unknown',
+            timestamp: timestamp || null,
+            raw: measurement,
+          });
+        })
+        .filter((m) => m && m.value !== undefined && m.timestamp);
+    }
+  }
+  return [];
 }
 
 async function fetchGraph() {
@@ -250,7 +322,36 @@ async function fetchLatestReading() {
   return reading;
 }
 
-function setCredentials({ email, password, region, tld }) {
+async function fetchGlucoseSeries() {
+  const patientId = await ensurePatientId();
+  await ensureLoggedIn();
+  const url = `${resolveBaseUrl()}/llu/connections/${patientId}/graph`;
+  const res = await fetch(url, { headers: buildHeaders(true) });
+  const json = await parseResponse(res);
+
+  if (json.status === 4) {
+    const ticket = json.data?.authTicket;
+    if (ticket?.token) {
+      const previousToken = cachedToken;
+      const previousExpire = tokenExpire;
+      cachedToken = ticket.token;
+      tokenExpire = ticket.expires || 0;
+      await acceptStep(json.data?.step?.type);
+      cachedToken = previousToken;
+      tokenExpire = previousExpire;
+      return fetchGlucoseSeries();
+    }
+    throw new Error('LibreLinkUp requires consent to access glucose data.');
+  }
+
+  if (json.status !== 0) {
+    throw new Error(`LibreLinkUp graph failed (status ${json.status})`);
+  }
+
+  return extractSeries(json);
+}
+
+function setCredentials({ email, password, region, tld, unit }) {
   if (!email || !password) {
     throw new Error('Email and password are required to configure LibreLinkUp.');
   }
@@ -260,12 +361,20 @@ function setCredentials({ email, password, region, tld }) {
     region: region ?? cachedRegion,
     tld: tld ?? cachedTld,
   };
+  if (unit) {
+    preferredUnit = normalizeUnit(unit);
+  }
   cachedRegion = overrideCredentials.region || '';
   cachedTld = overrideCredentials.tld || 'io';
   cachedToken = null;
   tokenExpire = 0;
   cachedUserId = null;
   cachedPatientId = null;
+}
+
+function setPreferredUnitFromPayload(unit) {
+  if (!unit) return;
+  preferredUnit = normalizeUnit(unit);
 }
 
 function maskEmail(email) {
@@ -290,14 +399,17 @@ function getCredentialStatus() {
     region: source.region || '',
     tld: source.tld || 'io',
     source: overrideCredentials ? 'inline' : 'env',
+    unit: preferredUnit,
   };
 }
 
 module.exports = {
   fetchLatestReading,
+  fetchGlucoseSeries,
   resolveBaseUrl,
   buildHeaders,
   sha256,
   setCredentials,
+  setPreferredUnitFromPayload,
   getCredentialStatus,
 };

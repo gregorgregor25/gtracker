@@ -49,6 +49,7 @@ function quickActionsMarkup() {
         <a class="btn secondary" href="calendar.html">Calendar Heatmap</a>
         <a class="btn secondary" href="weekly.html">Weekly Summary</a>
         <a class="btn secondary" href="badges.html">Badges</a>
+        <a class="btn secondary" href="glucose.html">Glucose</a>
         <a class="btn secondary" href="profile.html">Profile</a>
         <a class="btn secondary" href="weight.html">Weight Trend</a>
       </div>
@@ -329,6 +330,7 @@ async function registerServiceWorker() {
   }
 }
 
+/* MOOD BADGE */
 function updateMoodBadge(value) {
   const el = document.getElementById("today-mood");
   if (el) el.textContent = `Mood: ${value || "—"}`;

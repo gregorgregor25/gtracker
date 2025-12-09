@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Helper to format date as YYYY-MM-DD in local time
+// Helper — YYYY-MM-DD
 function todayString() {
   const now = new Date();
   const y = now.getFullYear();
@@ -23,15 +23,15 @@ function todayString() {
 }
 
 function normalizeEntry(payload) {
-  const toInt = (value) => {
-    if (value === undefined || value === null || value === '') return null;
-    const n = parseInt(value, 10);
+  const toInt = (v) => {
+    if (v === undefined || v === null || v === '') return null;
+    const n = parseInt(v, 10);
     return isNaN(n) ? null : n;
   };
 
-  const toFloat = (value) => {
-    if (value === undefined || value === null || value === '') return null;
-    const n = parseFloat(value);
+  const toFloat = (v) => {
+    if (v === undefined || v === null || v === '') return null;
+    const n = parseFloat(v);
     return isNaN(n) ? null : n;
   };
 
@@ -138,7 +138,7 @@ app.get('/api/entries', async (_req, res) => {
   try {
     const entries = await all('SELECT * FROM entries ORDER BY date ASC');
     res.json(entries);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to fetch entries' });
   }
 });
@@ -153,7 +153,7 @@ app.get('/api/entries/today', async (_req, res) => {
     }
 
     res.json(entry);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Failed to fetch today's entry" });
   }
 });
@@ -162,7 +162,7 @@ app.post('/api/entries', async (req, res) => {
   try {
     const saved = await upsertEntry(normalizeEntry(req.body || {}));
     res.json(saved);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to save entry' });
   }
 });
@@ -189,10 +189,10 @@ app.post('/api/debug/generate-fake', async (req, res) => {
       const caloriesGym = gymDone ? Math.floor(Math.random() * 351) : 0;
       const caloriesTreadmill = treadmillMinutes ? Math.floor(Math.random() * 251) : 0;
 
-      const caloriesConsumed = 1200 + Math.floor(Math.random() * 2301); // 1200–3500
+      const caloriesConsumed = 1200 + Math.floor(Math.random() * 2301);
       const carbs = Math.floor(Math.random() * 201);
 
-      const weight = baseWeight + (Math.random() - 0.5) * 5; // ±2.5kg
+      const weight = baseWeight + (Math.random() - 0.5) * 5;
       baseWeight = weight;
 
       const entry = normalizeEntry({
@@ -214,7 +214,7 @@ app.post('/api/debug/generate-fake', async (req, res) => {
     }
 
     res.json({ ok: true, count });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to generate fake data' });
   }
 });
@@ -225,12 +225,12 @@ app.post('/api/debug/reset', async (_req, res) => {
   try {
     await run('DELETE FROM entries');
     res.json({ ok: true });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to reset entries' });
   }
 });
 
-/* WEEKLY SUMMARY WITH CALORIES_CONSUMED */
+/* WEEKLY SUMMARY */
 
 app.get('/api/summary/week', async (_req, res) => {
   try {
@@ -297,7 +297,7 @@ app.get('/api/summary/week', async (_req, res) => {
       avg_weight: avgWeight,
       consistency_score,
     });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to calculate weekly summary' });
   }
 });
@@ -320,16 +320,16 @@ async function fetchProfile() {
 }
 
 function sanitizeProfile(body = {}) {
-  const toInt = (value) => {
-    if (value === undefined || value === null || value === '') return null;
-    const num = parseInt(value, 10);
-    return Number.isNaN(num) ? null : num;
+  const toInt = (v) => {
+    if (v === undefined || v === null || v === '') return null;
+    const n = parseInt(v, 10);
+    return isNaN(n) ? null : n;
   };
 
-  const toFloat = (value) => {
-    if (value === undefined || value === null || value === '') return null;
-    const num = parseFloat(value);
-    return Number.isNaN(num) ? null : num;
+  const toFloat = (v) => {
+    if (v === undefined || v === null || v === '') return null;
+    const n = parseFloat(v);
+    return isNaN(n) ? null : n;
   };
 
   const allowedActivity = ['sedentary', 'light', 'moderate', 'active'];
@@ -350,7 +350,7 @@ function sanitizeProfile(body = {}) {
 app.get('/api/profile', async (_req, res) => {
   try {
     res.json(await fetchProfile());
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to load profile' });
   }
 });
@@ -373,7 +373,7 @@ app.post('/api/profile', async (req, res) => {
     }
 
     res.json(await fetchProfile());
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to save profile' });
   }
 });
@@ -444,7 +444,7 @@ app.get('/api/summary/daily-goal', async (_req, res) => {
       calories_burned: burned,
       net_calories: net,
     });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to calculate daily goal' });
   }
 });
@@ -506,7 +506,7 @@ app.get('/api/summary/streaks', async (_req, res) => {
       current_gym_streak: ongoing,
       longest_gym_streak: longest,
     });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to calculate streaks' });
   }
 });
@@ -518,7 +518,6 @@ app.get('/api/glucose/config', (_req, res) => {
     const status = getCredentialStatus();
     res.json({ ok: true, ...status });
   } catch (err) {
-    console.error('LibreLinkUp config error:', err.message || err);
     res.status(500).json({ ok: false, error: 'Unable to load LibreLinkUp config' });
   }
 });
@@ -532,8 +531,7 @@ app.post('/api/glucose/config', (req, res) => {
     setCredentials({ email, password, region, tld });
     const status = getCredentialStatus();
     res.json({ ok: true, ...status });
-  } catch (err) {
-    console.error('LibreLinkUp config save error:', err.message || err);
+  } catch {
     res.status(500).json({ ok: false, error: 'Unable to save LibreLinkUp credentials' });
   }
 });
@@ -543,7 +541,6 @@ app.get('/api/glucose/latest', async (_req, res) => {
     const reading = await fetchLatestReading();
     res.json({ ok: true, reading });
   } catch (err) {
-    console.error('LibreLinkUp error:', err.message || err);
     res.status(500).json({ ok: false, error: err.message || 'Unable to fetch glucose data' });
   }
 });
