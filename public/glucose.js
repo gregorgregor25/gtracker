@@ -4,30 +4,30 @@ injectQuickActions();
 let glucoseChart = null;
 let glucoseData = [];
 let currentRange = '7d';
-let preferredUnit = 'mgdl';
 
 (async function init() {
+  const refreshBtn = document.getElementById('glucose-refresh');
+  if (refreshBtn) refreshBtn.addEventListener('click', () => loadLatest(true));
   document.getElementById('glucose-range-1d').addEventListener('click', () => setRange('1d'));
   document.getElementById('glucose-range-7d').addEventListener('click', () => setRange('7d'));
   await loadLatest();
   await loadHistory();
 })();
 
-async function loadLatest() {
+async function loadLatest(fromButton = false) {
   const latestEl = document.getElementById('glucose-latest');
   const trendEl = document.getElementById('glucose-trend');
   const timeEl = document.getElementById('glucose-timestamp');
   const unitEl = document.getElementById('glucose-unit');
   const statusEl = document.getElementById('glucose-status');
+  if (fromButton) latestEl.textContent = 'Refreshing...';
   try {
     const res = await fetchJSON('/api/glucose/latest');
     if (!res.ok || !res.reading) throw new Error('No reading');
-    preferredUnit = res.preferred_unit || preferredUnit;
-    const { value_mgdl, trend, timestamp } = res.reading;
-    const formatted = formatGlucoseDisplay(value_mgdl, preferredUnit);
-    latestEl.textContent = formatted.valueText !== '—' ? `${formatted.valueText} ${formatted.unitLabel}` : '—';
+    const { value, unit, trend, timestamp } = res.reading;
+    latestEl.textContent = value !== undefined && value !== null ? `${value} ${unit || ''}` : '—';
     trendEl.textContent = trend || '—';
-    unitEl.textContent = formatted.unitLabel;
+    unitEl.textContent = unit || '—';
     const ts = timestamp ? new Date(timestamp) : null;
     timeEl.textContent = ts ? `Updated: ${ts.toLocaleString()}` : 'Updated: —';
     statusEl.style.display = 'none';
@@ -46,20 +46,12 @@ async function loadHistory() {
   try {
     const res = await fetchJSON('/api/glucose/history');
     if (!res.ok || !Array.isArray(res.readings)) throw new Error('No readings');
-    preferredUnit = res.preferred_unit || preferredUnit;
     glucoseData = res.readings
       .filter((r) => r && r.timestamp)
-      .map((r) => {
-        const formatted = formatGlucoseDisplay(r.value_mgdl, preferredUnit);
-        return {
-          ...r,
-          value_mgdl: r.value_mgdl,
-          value: formatted.numeric,
-          displayText: formatted.valueText,
-          displayUnit: formatted.unitLabel,
-          ts: new Date(r.timestamp),
-        };
-      })
+      .map((r) => ({
+        ...r,
+        ts: new Date(r.timestamp),
+      }))
       .sort((a, b) => a.ts - b.ts);
     renderChart();
     renderStats();
@@ -93,7 +85,7 @@ function renderChart() {
   const ctx = document.getElementById('glucose-chart').getContext('2d');
   const labels = points.map((p) => p.ts.toLocaleString());
   const values = points.map((p) => p.value);
-  const unitForIndex = (idx) => points[idx]?.displayUnit || '';
+  const unitForIndex = (idx) => points[idx]?.unit || '';
   if (glucoseChart) glucoseChart.destroy();
   glucoseChart = new Chart(ctx, {
     type: 'line',
@@ -145,7 +137,7 @@ function renderStats() {
   const avg = values.reduce((a, b) => a + b, 0) / values.length;
   const min = Math.min(...values);
   const max = Math.max(...values);
-  const unit = points[0].displayUnit || '';
+  const unit = points[0].unit || '';
   [
     { label: 'Average', value: `${avg.toFixed(1)} ${unit}` },
     { label: 'Lowest', value: `${min.toFixed(1)} ${unit}` },
