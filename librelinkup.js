@@ -19,6 +19,7 @@ function requireConfig() {
     password: process.env.LLU_PASSWORD,
     region: process.env.LLU_REGION,
     tld: process.env.LLU_TLD,
+    unit: preferredUnit,
   };
   const email = source.email;
   const password = source.password;
