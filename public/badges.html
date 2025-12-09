@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#5b7cfa" />
+  <title>Badges - Health Tracker</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <nav class="nav">
+      <div class="links">
+        <strong>GTracker</strong>
+        <a id="nav-dashboard" href="/">Dashboard</a>
+        <a id="nav-edit" href="edit.html">Edit Today</a>
+        <a id="nav-history" href="history.html">History</a>
+        <a id="nav-calendar" href="calendar.html">Calendar</a>
+        <a id="nav-weekly" href="weekly.html">Weekly</a>
+        <a id="nav-badges" href="badges.html" class="active">Badges</a>
+        <a id="nav-glucose" href="glucose.html">Glucose</a>
+        <a id="nav-profile" href="profile.html">Profile</a>
+        <a id="nav-weight" href="weight.html">Weight</a>
+      </div>
+      <div class="actions">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">🌙</button>
+      </div>
+    </nav>
+  </header>
+  <main>
+    <div class="hero">
+      <div>
+        <p class="muted hero-title">Celebrate your momentum</p>
+        <h1>Badges & Achievements</h1>
+        <div class="flex" style="gap:8px; align-items:center;">
+          <span class="badge" id="badge-progress">—</span>
+          <span class="badge" id="badge-highlight">Unlock wins</span>
+        </div>
+      </div>
+      <div class="card" id="badge-top-card">
+        <div class="badge">Spotlight</div>
+        <h2 id="badge-spotlight">Loading...</h2>
+        <p class="muted" id="badge-spotlight-detail">Achievements you can grab next.</p>
+      </div>
+    </div>
+
+    <section class="quick-actions-wrapper" data-quick-actions></section>
+
+    <section class="grid two fade-in" id="badge-summary-cards">
+      <div class="card">
+        <h2>Gym & Consistency</h2>
+        <div class="grid two" id="badge-summary-grid"></div>
+      </div>
+      <div class="card">
+        <h2>Milestones</h2>
+        <div class="grid two" id="badge-milestones"></div>
+      </div>
+    </section>
+
+    <section class="card fade-in">
+      <div class="flex" style="justify-content: space-between; align-items:center;">
+        <h2>All badges</h2>
+        <div class="badge" id="badge-filter-label">All categories</div>
+      </div>
+      <div class="grid" id="badge-list"></div>
+    </section>
+  </main>
+  <script src="main.js"></script>
+  <script src="badges.js"></script>
+</body>
+</html>

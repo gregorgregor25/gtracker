@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#5b7cfa" />
+  <title>Glucose - GTracker</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <nav class="nav">
+      <div class="links">
+        <strong>GTracker</strong>
+        <a id="nav-dashboard" href="/">Dashboard</a>
+        <a id="nav-edit" href="edit.html">Edit Today</a>
+        <a id="nav-history" href="history.html">History</a>
+        <a id="nav-calendar" href="calendar.html">Calendar</a>
+        <a id="nav-weekly" href="weekly.html">Weekly</a>
+        <a id="nav-badges" href="badges.html">Badges</a>
+        <a id="nav-glucose" href="glucose.html" class="active">Glucose</a>
+        <a id="nav-profile" href="profile.html">Profile</a>
+        <a id="nav-weight" href="weight.html">Weight</a>
+      </div>
+      <div class="actions">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">🌙</button>
+      </div>
+    </nav>
+  </header>
+  <main>
+    <div class="hero">
+      <div>
+        <p class="muted hero-title">Sensor insights</p>
+        <h1>Glucose Trends</h1>
+      </div>
+      <div class="badge">Powered by LibreLinkUp</div>
+    </div>
+
+    <section class="quick-actions-wrapper" data-quick-actions></section>
+
+    <section class="grid two" style="gap:16px;">
+      <div class="card fade-in">
+        <div class="card-header">
+          <div>
+            <p class="muted">Latest reading</p>
+            <h2 id="glucose-latest">—</h2>
+            <p class="muted" id="glucose-timestamp">Updated: —</p>
+          </div>
+          <span class="badge subtle">Auto-refreshing</span>
+        </div>
+        <div class="stat-row">
+          <div class="stat">
+            <p class="muted">Trend</p>
+            <strong id="glucose-trend">—</strong>
+          </div>
+          <div class="stat">
+            <p class="muted">Unit</p>
+            <strong id="glucose-unit">—</strong>
+          </div>
+        </div>
+        <div class="banner subtle" id="glucose-status" style="display:none;"></div>
+      </div>
+
+      <div class="card fade-in">
+        <div class="card-header">
+          <div>
+            <p class="muted">Session tips</p>
+            <h2>Keep it steady</h2>
+          </div>
+          <span class="badge subtle">Auto-updates</span>
+        </div>
+        <ul class="insights">
+          <li>Updates run automatically every few minutes.</li>
+          <li>Use your preferred unit in Profile &rarr; LibreLinkUp.</li>
+          <li>Stay hydrated and follow your care plan.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card fade-in" style="margin-top:16px;">
+      <div class="card-header">
+        <div>
+          <p class="muted">Graph</p>
+          <h2>Recent glucose</h2>
+        </div>
+        <div class="quick-actions-buttons" style="gap:8px;">
+          <button class="btn secondary" id="glucose-range-1d">1d</button>
+          <button class="btn secondary" id="glucose-range-7d">7d</button>
+        </div>
+      </div>
+      <canvas id="glucose-chart" height="220"></canvas>
+      <div class="grid three" id="glucose-stats" style="margin-top:12px;"></div>
+    </section>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="main.js"></script>
+  <script src="glucose.js"></script>
+</body>
+</html>
