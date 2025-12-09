@@ -28,6 +28,7 @@
       </div>
     </nav>
   </header>
+
   <main>
     <div class="hero">
       <div>
@@ -36,15 +37,18 @@
       </div>
       <div class="badge">Keep stacking days</div>
     </div>
+
     <section class="quick-actions-wrapper" data-quick-actions></section>
+
     <section class="card fade-in">
-      <div class="flex" style="justify-content: space-between; align-items:center;">
+      <div class="flex" style="justify-content: space-between; align-items: center;">
         <div>
           <label class="muted">Filter by month</label>
           <input type="month" id="month-filter" />
         </div>
         <button id="toggle-sort" class="secondary">Newest first</button>
       </div>
+
       <div class="table-wrapper">
         <table class="table" id="history-table">
           <thead>
@@ -65,6 +69,7 @@
       </div>
     </section>
   </main>
+
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="main.js"></script>
   <script src="history.js"></script>
