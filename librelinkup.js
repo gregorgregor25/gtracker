@@ -11,12 +11,7 @@ let cachedTld = process.env.LLU_TLD || 'io';
 let cachedUserId = null;
 let cachedPatientId = null;
 let overrideCredentials = null;
-let preferredUnit = 'mgdl';
-
-const UNIT_LABELS = {
-  mgdl: 'mg/dL',
-  mmol: 'mmol/L',
-};
+let preferredUnit = 'mg/dL';
 
 function requireConfig() {
   const source = overrideCredentials || {
@@ -24,6 +19,7 @@ function requireConfig() {
     password: process.env.LLU_PASSWORD,
     region: process.env.LLU_REGION,
     tld: process.env.LLU_TLD,
+    unit: preferredUnit,
   };
   const email = source.email;
   const password = source.password;
@@ -43,11 +39,10 @@ function requireConfig() {
 }
 
 function normalizeUnit(unit) {
-  if (!unit) return preferredUnit || 'mgdl';
+  if (!unit) return 'mg/dL';
   const value = String(unit).toLowerCase();
-  if (value.includes('mmol')) return 'mmol';
-  if (value.includes('mg')) return 'mgdl';
-  return 'mgdl';
+  if (value.includes('mmol')) return 'mmol/L';
+  return 'mg/dL';
 }
 
 function resolveBaseUrl(regionOverride) {
@@ -203,13 +198,13 @@ function extractMeasurement(json) {
       candidate.measurements?.[0] ||
       candidate.glucoseData?.[0];
     if (measurement) {
-      const hasMg = measurement.ValueInMgPerDl !== undefined && measurement.ValueInMgPerDl !== null;
-      const value = hasMg
-        ? measurement.ValueInMgPerDl
-        : measurement.Value ?? measurement.value ?? measurement.GlucoseValue ?? measurement.glucose;
-      const unit = hasMg
-        ? 'mg/dL'
-        : measurement.Unit ?? measurement.unit ?? candidate.unit ?? 'mg/dL';
+      const value =
+        measurement.Value ??
+        measurement.value ??
+        measurement.ValueInMgPerDl ??
+        measurement.GlucoseValue ??
+        measurement.glucose;
+      const unit = measurement.Unit ?? measurement.unit ?? (measurement.ValueInMgPerDl ? 'mg/dL' : candidate.unit);
       const trend = measurement.TrendArrow ?? measurement.trendArrow ?? measurement.Trend ?? measurement.trend ?? candidate.trend;
       const timestamp =
         measurement.Timestamp ||
@@ -219,26 +214,33 @@ function extractMeasurement(json) {
         measurement.ReadingDate ||
         measurement.timestamp ||
         candidate.timestamp;
-      const mgValue = toMgDl(value, unit || 'mg/dL');
-      if (mgValue === null || mgValue === undefined) continue;
-      return {
-        glucose_mgdl: Math.round(mgValue),
-        unit: 'mg/dL',
+      return applyUnitPreference({
+        value,
+        unit: unit || 'mg/dL',
         trend: trend || 'Unknown',
         timestamp: timestamp || null,
         raw: measurement,
-      };
+      });
     }
   }
   throw new Error('LibreLinkUp glucose measurement missing from response.');
 }
 
-function toMgDl(value, unit) {
-  if (value === undefined || value === null) return null;
-  const numeric = Number(value);
-  if (Number.isNaN(numeric)) return null;
-  const normalizedUnit = (unit || 'mg/dL').toLowerCase();
-  return normalizedUnit.includes('mmol') ? numeric * 18 : numeric;
+function applyUnitPreference(measurement) {
+  if (!measurement || measurement.value === undefined || measurement.value === null) return measurement;
+  const currentUnit = (measurement.unit || 'mg/dL').toLowerCase();
+  const target = preferredUnit;
+  let convertedValue = measurement.value;
+  if (target === 'mmol/L' && currentUnit.includes('mg')) {
+    convertedValue = Number(measurement.value) / 18;
+  } else if (target === 'mg/dL' && currentUnit.includes('mmol')) {
+    convertedValue = Number(measurement.value) * 18;
+  }
+  return {
+    ...measurement,
+    value: Math.round(convertedValue * 10) / 10,
+    unit: target,
+  };
 }
 
 function extractSeries(json) {
@@ -254,13 +256,13 @@ function extractSeries(json) {
     if (Array.isArray(series) && series.length) {
       return series
         .map((measurement) => {
-          const hasMg = measurement.ValueInMgPerDl !== undefined && measurement.ValueInMgPerDl !== null;
-          const value = hasMg
-            ? measurement.ValueInMgPerDl
-            : measurement.Value ?? measurement.value ?? measurement.GlucoseValue ?? measurement.glucose;
-          const unit = hasMg
-            ? 'mg/dL'
-            : measurement.Unit ?? measurement.unit ?? candidate.unit ?? 'mg/dL';
+          const value =
+            measurement.Value ??
+            measurement.value ??
+            measurement.ValueInMgPerDl ??
+            measurement.GlucoseValue ??
+            measurement.glucose;
+          const unit = measurement.Unit ?? measurement.unit ?? (measurement.ValueInMgPerDl ? 'mg/dL' : candidate.unit);
           const trend = measurement.TrendArrow ?? measurement.trendArrow ?? measurement.Trend ?? measurement.trend ?? candidate.trend;
           const timestamp =
             measurement.Timestamp ||
@@ -270,17 +272,15 @@ function extractSeries(json) {
             measurement.ReadingDate ||
             measurement.timestamp ||
             candidate.timestamp;
-          const mgValue = toMgDl(value, unit || 'mg/dL');
-          if (mgValue === null || mgValue === undefined) return null;
-          return {
-            glucose_mgdl: Math.round(mgValue),
-            unit: 'mg/dL',
+          return applyUnitPreference({
+            value,
+            unit: unit || 'mg/dL',
             trend: trend || 'Unknown',
             timestamp: timestamp || null,
             raw: measurement,
-          };
+          });
         })
-        .filter((m) => m && m.glucose_mgdl !== undefined && m.timestamp);
+        .filter((m) => m && m.value !== undefined && m.timestamp);
     }
   }
   return [];
@@ -377,14 +377,6 @@ function setPreferredUnitFromPayload(unit) {
   preferredUnit = normalizeUnit(unit);
 }
 
-function getPreferredUnit() {
-  return preferredUnit;
-}
-
-function getPreferredUnitLabel() {
-  return UNIT_LABELS[preferredUnit] || 'mg/dL';
-}
-
 function maskEmail(email) {
   if (!email) return '';
   const [user, domain] = email.split('@');
@@ -408,7 +400,6 @@ function getCredentialStatus() {
     tld: source.tld || 'io',
     source: overrideCredentials ? 'inline' : 'env',
     unit: preferredUnit,
-    unit_label: getPreferredUnitLabel(),
   };
 }
 
@@ -421,6 +412,4 @@ module.exports = {
   setCredentials,
   setPreferredUnitFromPayload,
   getCredentialStatus,
-  getPreferredUnit,
-  getPreferredUnitLabel,
 };

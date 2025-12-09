@@ -6,6 +6,7 @@ const dbFile = path.join(__dirname, 'data.sqlite');
 const db = new sqlite3.Database(dbFile);
 
 db.serialize(() => {
+  // Main entries table
   db.run(`
     CREATE TABLE IF NOT EXISTS entries (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,11 +26,13 @@ db.serialize(() => {
     )
   `);
 
+  // Migration: ensure new columns exist
   addColumnIfMissing('entries', 'calories_gym', 'INTEGER DEFAULT 0');
   addColumnIfMissing('entries', 'calories_treadmill', 'INTEGER DEFAULT 0');
   addColumnIfMissing('entries', 'calories_total', 'INTEGER DEFAULT 0');
   addColumnIfMissing('entries', 'calories_consumed', 'INTEGER');
 
+  // Profile table (new feature)
   db.run(`
     CREATE TABLE IF NOT EXISTS profile (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,6 +45,7 @@ db.serialize(() => {
   `);
 });
 
+// Utility for schema migrations
 function addColumnIfMissing(table, column, definition) {
   db.all(`PRAGMA table_info(${table})`, (err, rows) => {
     if (err) return;
