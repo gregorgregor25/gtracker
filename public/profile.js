@@ -7,11 +7,14 @@ setActiveNav('nav-profile');
   } catch (err) {
     showBanner('Unable to load profile', true);
   }
+
   await loadLibreLinkConfig();
 })();
 
+/* PROFILE SAVE */
 document.getElementById('profile-form').addEventListener('submit', async (e) => {
   e.preventDefault();
+
   const payload = {
     age: document.getElementById('age').value,
     sex: document.getElementById('sex').value,
@@ -19,11 +22,13 @@ document.getElementById('profile-form').addEventListener('submit', async (e) => 
     goal_weight: document.getElementById('goal_weight').value,
     activity_level: document.getElementById('activity_level').value,
   };
+
   try {
     await fetchJSON('/api/profile', {
       method: 'POST',
       body: JSON.stringify(payload),
     });
+
     showBanner('Profile saved');
     showToast('Profile updated');
   } catch (err) {
@@ -47,10 +52,12 @@ function showBanner(text, danger = false) {
   banner.style.color = danger ? '#991b1b' : '#075985';
 }
 
+/* LOAD LIBRELINKUP CONFIG */
 async function loadLibreLinkConfig() {
   try {
     const cfg = await fetchJSON('/api/glucose/config');
     const statusEl = document.getElementById('llu-status');
+
     if (cfg.ok && cfg.configured) {
       statusEl.textContent = `Configured for ${cfg.email || 'your account'} (${cfg.region || 'default region'} / ${cfg.tld || 'io'})`;
       statusEl.style.background = '#e0f2fe';
@@ -60,8 +67,12 @@ async function loadLibreLinkConfig() {
       statusEl.style.background = '#fff7ed';
       statusEl.style.color = '#9a3412';
     }
-    setUnitPreference(cfg.unit || 'mgdl');
+
     statusEl.style.display = 'block';
+
+    // ⭐ Restore unit toggle state
+    setUnitPreference(cfg.unit || 'mg/dL');
+
   } catch (err) {
     const statusEl = document.getElementById('llu-status');
     statusEl.textContent = 'Unable to load LibreLinkUp configuration.';
@@ -71,26 +82,34 @@ async function loadLibreLinkConfig() {
   }
 }
 
+/* SAVE LLU CONFIG */
 document.getElementById('llu-form').addEventListener('submit', async (e) => {
   e.preventDefault();
+
   const payload = {
     email: document.getElementById('llu-email').value.trim(),
     password: document.getElementById('llu-password').value,
     region: document.getElementById('llu-region').value.trim(),
     tld: document.getElementById('llu-tld').value.trim(),
-    unit: document.getElementById('llu-unit').value,
+    unit: document.getElementById('llu-unit').value,   // ⭐ required
   };
+
   const statusEl = document.getElementById('llu-status');
+
   try {
     const res = await fetchJSON('/api/glucose/config', {
       method: 'POST',
       body: JSON.stringify(payload),
     });
+
     statusEl.textContent = `Saved. Configured for ${res.email || 'your account'} (${res.region || 'default region'} / ${res.tld || 'io'}).`;
     statusEl.style.display = 'block';
     statusEl.style.background = '#e0f2fe';
     statusEl.style.color = '#075985';
+
+    // ⭐ Update UI toggle after save
     setUnitPreference(res.unit || payload.unit);
+
     showToast('LibreLinkUp credentials saved');
     document.getElementById('llu-password').value = '';
   } catch (err) {
@@ -101,15 +120,17 @@ document.getElementById('llu-form').addEventListener('submit', async (e) => {
   }
 });
 
+/* UNIT TOGGLE HANDLING */
 document.querySelectorAll('#llu-unit-toggle button').forEach((btn) => {
   btn.addEventListener('click', () => setUnitPreference(btn.dataset.unit));
 });
 
 function setUnitPreference(unit) {
-  const normalized = normalizePreferredUnit(unit);
-  const label = normalized === 'mmol' ? 'mmol/L' : 'mg/dL';
+  const normalized = unit && unit.toLowerCase().includes('mmol') ? 'mmol/L' : 'mg/dL';
+
   document.getElementById('llu-unit').value = normalized;
+
   document.querySelectorAll('#llu-unit-toggle button').forEach((btn) => {
-    btn.classList.toggle('active', btn.dataset.unit === normalized || btn.dataset.unit === label);
+    btn.classList.toggle('active', btn.dataset.unit === normalized);
   });
 }
