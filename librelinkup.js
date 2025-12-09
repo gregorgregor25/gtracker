@@ -19,6 +19,7 @@ function requireConfig() {
     password: process.env.LLU_PASSWORD,
     region: process.env.LLU_REGION,
     tld: process.env.LLU_TLD,
+    unit: preferredUnit,
   };
   const email = source.email;
   const password = source.password;
@@ -197,7 +198,13 @@ function extractMeasurement(json) {
       candidate.measurements?.[0] ||
       candidate.glucoseData?.[0];
     if (measurement) {
-      const { value, unit } = deriveValueAndUnit(measurement, candidate);
+      const value =
+        measurement.Value ??
+        measurement.value ??
+        measurement.ValueInMgPerDl ??
+        measurement.GlucoseValue ??
+        measurement.glucose;
+      const unit = measurement.Unit ?? measurement.unit ?? (measurement.ValueInMgPerDl ? 'mg/dL' : candidate.unit);
       const trend = measurement.TrendArrow ?? measurement.trendArrow ?? measurement.Trend ?? measurement.trend ?? candidate.trend;
       const timestamp =
         measurement.Timestamp ||
@@ -221,38 +228,19 @@ function extractMeasurement(json) {
 
 function applyUnitPreference(measurement) {
   if (!measurement || measurement.value === undefined || measurement.value === null) return measurement;
-  const mgValue = toMgDl(measurement.value, measurement.unit);
-  if (mgValue === null) return measurement;
+  const currentUnit = (measurement.unit || 'mg/dL').toLowerCase();
   const target = preferredUnit;
-  const value =
-    target === 'mmol/L'
-      ? Math.round((mgValue / 18) * 10) / 10
-      : Math.round(mgValue);
+  let convertedValue = measurement.value;
+  if (target === 'mmol/L' && currentUnit.includes('mg')) {
+    convertedValue = Number(measurement.value) / 18;
+  } else if (target === 'mg/dL' && currentUnit.includes('mmol')) {
+    convertedValue = Number(measurement.value) * 18;
+  }
   return {
     ...measurement,
-    value,
+    value: Math.round(convertedValue * 10) / 10,
     unit: target,
-    mgValue,
   };
-}
-
-function deriveValueAndUnit(measurement, candidate) {
-  const hasMgValue = measurement.ValueInMgPerDl !== undefined && measurement.ValueInMgPerDl !== null;
-  const rawUnit = measurement.Unit ?? measurement.unit ?? candidate?.unit;
-  const unit = hasMgValue ? 'mg/dL' : rawUnit || 'mg/dL';
-  const value = hasMgValue
-    ? measurement.ValueInMgPerDl
-    : measurement.Value ?? measurement.value ?? measurement.GlucoseValue ?? measurement.glucose;
-
-  return { value, unit };
-}
-
-function toMgDl(value, unit) {
-  if (value === undefined || value === null) return null;
-  const numeric = Number(value);
-  if (Number.isNaN(numeric)) return null;
-  const normalizedUnit = (unit || 'mg/dL').toLowerCase();
-  return normalizedUnit.includes('mmol') ? numeric * 18 : numeric;
 }
 
 function extractSeries(json) {
@@ -268,7 +256,13 @@ function extractSeries(json) {
     if (Array.isArray(series) && series.length) {
       return series
         .map((measurement) => {
-          const { value, unit } = deriveValueAndUnit(measurement, candidate);
+          const value =
+            measurement.Value ??
+            measurement.value ??
+            measurement.ValueInMgPerDl ??
+            measurement.GlucoseValue ??
+            measurement.glucose;
+          const unit = measurement.Unit ?? measurement.unit ?? (measurement.ValueInMgPerDl ? 'mg/dL' : candidate.unit);
           const trend = measurement.TrendArrow ?? measurement.trendArrow ?? measurement.Trend ?? measurement.trend ?? candidate.trend;
           const timestamp =
             measurement.Timestamp ||

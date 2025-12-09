@@ -6,18 +6,21 @@ let glucoseData = [];
 let currentRange = '7d';
 
 (async function init() {
+  const refreshBtn = document.getElementById('glucose-refresh');
+  if (refreshBtn) refreshBtn.addEventListener('click', () => loadLatest(true));
   document.getElementById('glucose-range-1d').addEventListener('click', () => setRange('1d'));
   document.getElementById('glucose-range-7d').addEventListener('click', () => setRange('7d'));
   await loadLatest();
   await loadHistory();
 })();
 
-async function loadLatest() {
+async function loadLatest(fromButton = false) {
   const latestEl = document.getElementById('glucose-latest');
   const trendEl = document.getElementById('glucose-trend');
   const timeEl = document.getElementById('glucose-timestamp');
   const unitEl = document.getElementById('glucose-unit');
   const statusEl = document.getElementById('glucose-status');
+  if (fromButton) latestEl.textContent = 'Refreshing...';
   try {
     const res = await fetchJSON('/api/glucose/latest');
     if (!res.ok || !res.reading) throw new Error('No reading');
