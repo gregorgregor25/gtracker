@@ -19,6 +19,7 @@ function requireConfig() {
     password: process.env.LLU_PASSWORD,
     region: process.env.LLU_REGION,
     tld: process.env.LLU_TLD,
+    unit: preferredUnit,
   };
   const email = source.email;
   const password = source.password;
@@ -197,7 +198,13 @@ function extractMeasurement(json) {
       candidate.measurements?.[0] ||
       candidate.glucoseData?.[0];
     if (measurement) {
-      const { value, unit } = deriveValueAndUnit(measurement, candidate);
+      const value =
+        measurement.Value ??
+        measurement.value ??
+        measurement.ValueInMgPerDl ??
+        measurement.GlucoseValue ??
+        measurement.glucose;
+      const unit = measurement.Unit ?? measurement.unit ?? (measurement.ValueInMgPerDl ? 'mg/dL' : candidate.unit);
       const trend = measurement.TrendArrow ?? measurement.trendArrow ?? measurement.Trend ?? measurement.trend ?? candidate.trend;
       const timestamp =
         measurement.Timestamp ||
@@ -236,27 +243,6 @@ function applyUnitPreference(measurement) {
   };
 }
 
-function deriveValueAndUnit(measurement, candidate) {
-  const hasMgValue = measurement.ValueInMgPerDl !== undefined && measurement.ValueInMgPerDl !== null;
-  const rawUnit = measurement.Unit ?? measurement.unit ?? candidate?.unit;
-  let unit = rawUnit || (hasMgValue ? 'mg/dL' : undefined);
-  let value = hasMgValue
-    ? measurement.ValueInMgPerDl
-    : measurement.Value ?? measurement.value ?? measurement.GlucoseValue ?? measurement.glucose;
-
-  if (!unit && value !== undefined) {
-    unit = 'mmol/L';
-  }
-
-  // If both mmol and mg values are present, prefer the explicit mg/dL figure.
-  if (hasMgValue && rawUnit && String(rawUnit).toLowerCase().includes('mmol')) {
-    unit = 'mg/dL';
-    value = measurement.ValueInMgPerDl;
-  }
-
-  return { value, unit };
-}
-
 function extractSeries(json) {
   const candidates = [json?.data?.connection, json?.data, json?.connection, json?.graph?.connection];
   for (const candidate of candidates) {
@@ -270,7 +256,13 @@ function extractSeries(json) {
     if (Array.isArray(series) && series.length) {
       return series
         .map((measurement) => {
-          const { value, unit } = deriveValueAndUnit(measurement, candidate);
+          const value =
+            measurement.Value ??
+            measurement.value ??
+            measurement.ValueInMgPerDl ??
+            measurement.GlucoseValue ??
+            measurement.glucose;
+          const unit = measurement.Unit ?? measurement.unit ?? (measurement.ValueInMgPerDl ? 'mg/dL' : candidate.unit);
           const trend = measurement.TrendArrow ?? measurement.trendArrow ?? measurement.Trend ?? measurement.trend ?? candidate.trend;
           const timestamp =
             measurement.Timestamp ||
