@@ -2,6 +2,18 @@ const TREADMILL_GOAL = 120;
 const GLUCOSE_INTERVAL_MS = 5 * 60 * 1000;
 let glucoseRefreshTimer = null;
 
+function mapTrendSymbol(trend) {
+  const n = Number(trend);
+  switch (n) {
+    case 1: return '↓';   // falling fast
+    case 2: return '↘';   // falling
+    case 3: return '→';   // stable
+    case 4: return '↗';   // rising
+    case 5: return '↑';   // rising fast
+    default: return '';
+  }
+}
+
 (async function init() {
   setActiveNav('nav-dashboard');
   await loadToday();
@@ -227,8 +239,10 @@ function addAchievement(container, icon, text) {
 // ---------------------
 async function loadGlucose(fromButton = false) {
   const valueEl = document.getElementById('glucose-value');
+  const deltaEl = document.getElementById('glucose-delta');   // NEW
   const trendEl = document.getElementById('glucose-trend');
   const timeEl = document.getElementById('glucose-time');
+
   if (!valueEl || !trendEl || !timeEl) return;
 
   if (fromButton) {
@@ -240,28 +254,66 @@ async function loadGlucose(fromButton = false) {
     if (!data.ok || !data.reading) throw new Error('No reading');
 
     const reading = data.reading;
+    const delta = data.delta;
     const unit = reading.unit ? ` ${reading.unit}` : '';
 
-    valueEl.textContent =
-      reading.value !== undefined && reading.value !== null
-        ? `${reading.value}${unit}`
-        : '—';
+    // Trend arrow
+    const arrow = mapTrendSymbol(reading.trend);
 
-    trendEl.textContent = `Trend: ${reading.trend || '—'}`;
+    // MAIN GLUCOSE VALUE (without delta)
+    if (reading.value !== undefined && reading.value !== null) {
+      const line = [
+        `${reading.value}${unit}`,
+        arrow || ''
+      ]
+        .filter(Boolean)
+        .join(' ');
 
+      valueEl.textContent = line;
+    } else {
+      valueEl.textContent = '—';
+    }
+
+    // DELTA TEXT (separate field)
+    if (deltaEl) {
+      let deltaText = '—';
+      if (delta !== null && delta !== undefined) {
+        if (delta > 0) deltaText = `+${delta}`;
+        else if (delta < 0) deltaText = `${delta}`;
+        else deltaText = `0.0`;
+      }
+      deltaEl.textContent = `Change: ${deltaText}`;
+    }
+
+    // Trend line
+    trendEl.textContent = arrow
+      ? `Trend: ${arrow}`
+      : `Trend: ${reading.trend ?? '—'}`;
+
+    // Timestamp
     const time = reading.timestamp ? new Date(reading.timestamp) : null;
-    timeEl.textContent = time ? `Updated: ${time.toLocaleString()}` : 'Updated: —';
+    timeEl.textContent = time
+      ? `Updated: ${time.toLocaleString()}`
+      : 'Updated: —';
 
     scheduleNextGlucoseRefresh(time ? time.getTime() : null);
+
   } catch (err) {
     console.error('Glucose fetch failed', err);
+
     valueEl.textContent = 'Unavailable';
+
+    if (deltaEl) {
+      deltaEl.textContent = 'Change: —';
+    }
+
     trendEl.textContent = 'Could not fetch current glucose from LibreLinkUp.';
     timeEl.textContent = 'Updated: —';
 
     scheduleNextGlucoseRefresh(null);
   }
 }
+
 
 function scheduleNextGlucoseRefresh(lastTimestamp) {
   if (glucoseRefreshTimer) {

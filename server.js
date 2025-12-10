@@ -3,9 +3,20 @@ const path = require('path');
 const { run, get, all } = require('./db');
 const {
   fetchLatestReading,
+  fetchGlucoseSeries,
+  extractMeasurement,
+  extractSeries,
+  computeDelta,
+  resolveBaseUrl,
+  buildHeaders,
+  ensureLoggedIn,
+  ensurePatientId,
   setCredentials,
+  setPreferredUnitFromPayload,
   getCredentialStatus,
 } = require('./librelinkup');
+
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,7 +24,8 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Helper — YYYY-MM-DD
+// ------------------ Helpers ------------------
+
 function todayString() {
   const now = new Date();
   const y = now.getFullYear();
@@ -67,7 +79,8 @@ function normalizeEntry(payload) {
   };
 }
 
-// UPSERT ENTRY
+// ------------------ UPSERT ENTRY ------------------
+
 async function upsertEntry(entry) {
   const existing = await get('SELECT id FROM entries WHERE date = ?', [entry.date]);
 
@@ -132,8 +145,9 @@ async function upsertEntry(entry) {
   return { ...entry, id: result.lastID };
 }
 
-/* ROUTES */
+// ------------------ ROUTES ------------------
 
+// All entries
 app.get('/api/entries', async (_req, res) => {
   try {
     const entries = await all('SELECT * FROM entries ORDER BY date ASC');
@@ -143,6 +157,7 @@ app.get('/api/entries', async (_req, res) => {
   }
 });
 
+// Today's entry
 app.get('/api/entries/today', async (_req, res) => {
   try {
     const today = todayString();
@@ -158,6 +173,7 @@ app.get('/api/entries/today', async (_req, res) => {
   }
 });
 
+// Save entry
 app.post('/api/entries', async (req, res) => {
   try {
     const saved = await upsertEntry(normalizeEntry(req.body || {}));
@@ -167,7 +183,7 @@ app.post('/api/entries', async (req, res) => {
   }
 });
 
-/* DEBUG — FAKE DATA */
+// ------------------ DEBUG ------------------
 
 app.post('/api/debug/generate-fake', async (req, res) => {
   try {
@@ -219,8 +235,6 @@ app.post('/api/debug/generate-fake', async (req, res) => {
   }
 });
 
-/* DEBUG — RESET */
-
 app.post('/api/debug/reset', async (_req, res) => {
   try {
     await run('DELETE FROM entries');
@@ -230,7 +244,7 @@ app.post('/api/debug/reset', async (_req, res) => {
   }
 });
 
-/* WEEKLY SUMMARY */
+// ------------------ WEEKLY SUMMARY ------------------
 
 app.get('/api/summary/week', async (_req, res) => {
   try {
@@ -302,7 +316,7 @@ app.get('/api/summary/week', async (_req, res) => {
   }
 });
 
-/* PROFILE */
+// ------------------ PROFILE ------------------
 
 function defaultProfile() {
   return {
@@ -378,7 +392,7 @@ app.post('/api/profile', async (req, res) => {
   }
 });
 
-/* DAILY GOAL */
+// ------------------ DAILY GOAL ------------------
 
 function calculateBMR(profile, weight) {
   const age = profile.age || 0;
@@ -449,7 +463,7 @@ app.get('/api/summary/daily-goal', async (_req, res) => {
   }
 });
 
-/* STREAKS */
+// ------------------ STREAKS ------------------
 
 function parseDate(str) {
   const [y, m, d] = str.split('-').map(Number);
@@ -511,7 +525,7 @@ app.get('/api/summary/streaks', async (_req, res) => {
   }
 });
 
-/* LIBRELINKUP CONFIG + LATEST */
+// ------------------ LIBRELINKUP ------------------
 
 app.get('/api/glucose/config', (_req, res) => {
   try {
@@ -524,27 +538,83 @@ app.get('/api/glucose/config', (_req, res) => {
 
 app.post('/api/glucose/config', (req, res) => {
   try {
-    const { email, password, region, tld } = req.body || {};
+    const { email, password, region, tld, unit } = req.body || {};
+
     if (!email || !password) {
       return res.status(400).json({ ok: false, error: 'Email and password are required' });
     }
-    setCredentials({ email, password, region, tld });
+
+    setCredentials({ email, password, region, tld, unit });
+
     const status = getCredentialStatus();
     res.json({ ok: true, ...status });
+
   } catch {
     res.status(500).json({ ok: false, error: 'Unable to save LibreLinkUp credentials' });
   }
 });
 
-app.get('/api/glucose/latest', async (_req, res) => {
+// Latest glucose + delta
+app.get('/api/glucose/latest', async (req, res) => {
   try {
-    const reading = await fetchLatestReading();
-    res.json({ ok: true, reading });
+    const latest = await fetchLatestReading();
+    const series = await fetchGlucoseSeries();
+
+    let delta = null;
+
+    if (Array.isArray(series) && series.length >= 2) {
+      const last = series[series.length - 1];
+      const prev = series[series.length - 2];
+
+      if (last?.value != null && prev?.value != null) {
+        delta = Math.round((last.value - prev.value) * 10) / 10;
+      }
+    }
+
+    res.json({
+      ok: true,
+      reading: latest,   // ← FRONTEND EXPECTS THIS KEY
+      delta,
+    });
+
   } catch (err) {
-    res.status(500).json({ ok: false, error: err.message || 'Unable to fetch glucose data' });
+    console.error('Error in /api/glucose/latest:', err);
+    res.json({ ok: false, error: String(err) });
   }
 });
 
+// TEMP: Debug endpoint to inspect glucose series
+app.get('/api/glucose/debug', async (_req, res) => {
+  try {
+    const series = await fetchGlucoseSeries();
+
+    res.json({
+      ok: true,
+      length: Array.isArray(series) ? series.length : 0,
+      last3: Array.isArray(series) ? series.slice(-3) : [],
+    });
+  } catch (err) {
+    console.error('Debug error:', err);
+    res.json({ ok: false, error: String(err) });
+  }
+});
+
+app.get('/api/glucose/raw', async (_req, res) => {
+  try {
+    const patientId = await ensurePatientId();
+    await ensureLoggedIn();
+    const url = `${resolveBaseUrl()}/llu/connections/${patientId}/graph`;
+
+    const raw = await fetch(url, { headers: buildHeaders(true) }).then(r => r.json());
+
+    res.json(raw);
+  } catch (err) {
+    res.json({ ok: false, error: String(err) });
+  }
+});
+
+// ------------------ START SERVER ------------------
+
 app.listen(PORT, () => {
-  console.log(`Health tracker running on http://localhost:${PORT}`);
+  console.log(`Server listening on http://localhost:${PORT}`);
 });

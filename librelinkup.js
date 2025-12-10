@@ -187,105 +187,225 @@ async function ensurePatientId() {
   return fetchConnections();
 }
 
+// ------------------ Single latest measurement ------------------
 function extractMeasurement(json) {
-  const candidates = [json?.data?.connection, json?.data, json?.connection, json?.graph?.connection];
+  const candidates = [
+    json?.data?.connection,
+    json?.data,
+    json?.connection,
+    json?.graph?.connection
+  ];
+
   for (const candidate of candidates) {
     if (!candidate) continue;
+
+    // Try multiple known keys LibreLinkUp may use
     const measurement =
       candidate.glucoseMeasurement ||
+      candidate.glucoseItem ||          // <-- Important new fallback
       candidate.glucoseMeasurementHistory?.[0] ||
       candidate.glucoseMeasurements?.[0] ||
       candidate.measurements?.[0] ||
       candidate.glucoseData?.[0];
-    if (measurement) {
-      const value =
-        measurement.Value ??
-        measurement.value ??
-        measurement.ValueInMgPerDl ??
-        measurement.GlucoseValue ??
-        measurement.glucose;
-      const unit = measurement.Unit ?? measurement.unit ?? (measurement.ValueInMgPerDl ? 'mg/dL' : candidate.unit);
-      const trend = measurement.TrendArrow ?? measurement.trendArrow ?? measurement.Trend ?? measurement.trend ?? candidate.trend;
-      const timestamp =
-        measurement.Timestamp ||
-        measurement.MeasurementDate ||
-        measurement.TimeStamp ||
-        measurement.FactoryTimestamp ||
-        measurement.ReadingDate ||
-        measurement.timestamp ||
-        candidate.timestamp;
-      return applyUnitPreference({
-        value,
-        unit: unit || 'mg/dL',
-        trend: trend || 'Unknown',
-        timestamp: timestamp || null,
-        raw: measurement,
-      });
-    }
+
+    if (!measurement) continue;
+
+    const value =
+      measurement.Value ??
+      measurement.value ??
+      measurement.ValueInMgPerDl ??
+      measurement.GlucoseValue ??
+      measurement.glucose;
+
+    const unit =
+      measurement.Unit ??
+      measurement.unit ??
+      (measurement.ValueInMgPerDl ? "mg/dL" : "mmol/L");
+
+    const trend =
+      measurement.TrendArrow ??
+      measurement.trendArrow ??
+      measurement.Trend ??
+      measurement.trend ??
+      null;
+
+    const timestamp =
+      measurement.Timestamp ||
+      measurement.MeasurementDate ||
+      measurement.TimeStamp ||
+      measurement.FactoryTimestamp ||
+      measurement.ReadingDate ||
+      measurement.timestamp ||
+      null;
+
+    // Debug
+    console.log(
+      "DEBUG: Extracted latest measurement:",
+      JSON.stringify(measurement, null, 2)
+    );
+
+    return applyUnitPreference({
+      value,
+      unit: unit || "mg/dL",
+      trend: trend || "Unknown",
+      timestamp,
+      raw: measurement,
+    });
   }
-  throw new Error('LibreLinkUp glucose measurement missing from response.');
+
+  throw new Error("LibreLinkUp glucose measurement missing from response.");
 }
 
-function applyUnitPreference(measurement) {
-  if (!measurement || measurement.value === undefined || measurement.value === null) return measurement;
-  const currentUnit = (measurement.unit || 'mg/dL').toLowerCase();
-  const target = preferredUnit;
-  let convertedValue = measurement.value;
-  if (target === 'mmol/L' && currentUnit.includes('mg')) {
-    convertedValue = Number(measurement.value) / 18;
-  } else if (target === 'mg/dL' && currentUnit.includes('mmol')) {
-    convertedValue = Number(measurement.value) * 18;
+
+function extractSeries(json) {
+  const candidates = [
+    json?.data?.connection,
+    json?.data,
+    json?.connection,
+    json?.graph?.connection,
+    json,
+  ];
+
+  let all = [];
+
+  for (const c of candidates) {
+    if (!c) continue;
+
+    if (Array.isArray(c.glucoseMeasurementHistory)) {
+      all.push(...c.glucoseMeasurementHistory);
+    }
+    if (Array.isArray(c.glucoseMeasurements)) {
+      all.push(...c.glucoseMeasurements);
+    }
+    if (Array.isArray(c.measurements)) {
+      all.push(...c.measurements);
+    }
+    if (Array.isArray(c.glucoseData)) {
+      all.push(...c.glucoseData);
+    }
+    if (Array.isArray(c.graphData)) {
+      all.push(...c.graphData);   // ← REQUIRED FIX
+    }
+    if (c.glucoseMeasurement) {
+      all.push(c.glucoseMeasurement);
+    }
   }
+
+  if (!all.length) return [];
+
+  const series = all
+    .map((m) => {
+      const value =
+        m.Value ??
+        m.value ??
+        m.ValueInMgPerDl ??
+        m.GlucoseValue ??
+        m.glucose;
+
+      const unit =
+        m.Unit ??
+        m.unit ??
+        (m.ValueInMgPerDl ? "mg/dL" : null);
+
+      const trend =
+        m.TrendArrow ??
+        m.trendArrow ??
+        m.Trend ??
+        m.trend ??
+        null;
+
+      const timestamp =
+        m.Timestamp ||
+        m.MeasurementDate ||
+        m.TimeStamp ||
+        m.FactoryTimestamp ||
+        m.ReadingDate ||
+        m.timestamp ||
+        null;
+
+      return applyUnitPreference({
+        value,
+        unit: unit || "mg/dL",
+        trend: trend,
+        timestamp: timestamp,
+        raw: m,
+      });
+    })
+    .filter((m) => m.value !== undefined && m.timestamp);
+
+  series.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+  return series;
+}
+
+
+// ------------------ Delta calculation ------------------
+function computeDelta(series) {
+  if (!series || series.length < 2) return null;
+
+  const last = series[series.length - 1];
+  const prev = series[series.length - 2];
+
+  const deltaValue = last.value - prev.value;
+
   return {
-    ...measurement,
-    value: Math.round(convertedValue * 10) / 10,
-    unit: target,
+    delta: parseFloat(deltaValue.toFixed(2)),
+    unit: last.unit
   };
 }
 
-function extractSeries(json) {
-  const candidates = [json?.data?.connection, json?.data, json?.connection, json?.graph?.connection];
-  for (const candidate of candidates) {
-    if (!candidate) continue;
-    const series =
-      candidate.glucoseMeasurementHistory ||
-      candidate.glucoseMeasurements ||
-      candidate.measurements ||
-      candidate.glucoseData ||
-      [];
-    if (Array.isArray(series) && series.length) {
-      return series
-        .map((measurement) => {
-          const value =
-            measurement.Value ??
-            measurement.value ??
-            measurement.ValueInMgPerDl ??
-            measurement.GlucoseValue ??
-            measurement.glucose;
-          const unit = measurement.Unit ?? measurement.unit ?? (measurement.ValueInMgPerDl ? 'mg/dL' : candidate.unit);
-          const trend = measurement.TrendArrow ?? measurement.trendArrow ?? measurement.Trend ?? measurement.trend ?? candidate.trend;
-          const timestamp =
-            measurement.Timestamp ||
-            measurement.MeasurementDate ||
-            measurement.TimeStamp ||
-            measurement.FactoryTimestamp ||
-            measurement.ReadingDate ||
-            measurement.timestamp ||
-            candidate.timestamp;
-          return applyUnitPreference({
-            value,
-            unit: unit || 'mg/dL',
-            trend: trend || 'Unknown',
-            timestamp: timestamp || null,
-            raw: measurement,
-          });
-        })
-        .filter((m) => m && m.value !== undefined && m.timestamp);
+// ------------------ Unit handling ------------------
+function applyUnitPreference(measurement) {
+  if (!measurement || measurement.value === undefined || measurement.value === null) {
+    return measurement;
+  }
+
+  const target = (preferredUnit || 'mg/dL').toLowerCase();
+  const unitLower = (measurement.unit || '').toLowerCase();
+  const rawValue = Number(measurement.value);
+
+  let mgValue;
+
+  if (measurement.ValueInMgPerDl != null) {
+    mgValue = Number(measurement.ValueInMgPerDl);
+  } else if (unitLower.includes('mmol')) {
+    mgValue = rawValue * 18;
+  } else {
+    if (rawValue > 0 && rawValue < 40) {
+      mgValue = rawValue * 18;
+    } else {
+      mgValue = rawValue;
     }
   }
-  return [];
+
+  // TEMP debug – remove later if noisy
+  console.log('applyUnitPreference RAW:', {
+    rawValue,
+    unitLower,
+    valueInMg: measurement.ValueInMgPerDl,
+    mgValue,
+    target,
+  });
+
+  let finalValue;
+  let finalUnit;
+
+  if (target.includes('mmol')) {
+    finalValue = mgValue / 18;
+    finalUnit = 'mmol/L';
+  } else {
+    finalValue = mgValue;
+    finalUnit = 'mg/dL';
+  }
+
+  return {
+    ...measurement,
+    value: Math.round(finalValue * 10) / 10,
+    unit: finalUnit,
+  };
 }
 
+// ------------------ Graph / series fetch ------------------
 async function fetchGraph() {
   const patientId = await ensurePatientId();
   await ensureLoggedIn();
@@ -355,17 +475,21 @@ function setCredentials({ email, password, region, tld, unit }) {
   if (!email || !password) {
     throw new Error('Email and password are required to configure LibreLinkUp.');
   }
+
   overrideCredentials = {
     email,
     password,
-    region: region ?? cachedRegion,
-    tld: tld ?? cachedTld,
+    region: region || cachedRegion || 'eu2',
+    tld: tld || cachedTld || 'com',
   };
+
   if (unit) {
     preferredUnit = normalizeUnit(unit);
   }
-  cachedRegion = overrideCredentials.region || '';
-  cachedTld = overrideCredentials.tld || 'io';
+
+  cachedRegion = overrideCredentials.region;
+  cachedTld = overrideCredentials.tld;
+
   cachedToken = null;
   tokenExpire = 0;
   cachedUserId = null;
@@ -406,9 +530,14 @@ function getCredentialStatus() {
 module.exports = {
   fetchLatestReading,
   fetchGlucoseSeries,
+  extractMeasurement,
+  extractSeries,
+  computeDelta,
   resolveBaseUrl,
   buildHeaders,
   sha256,
+  ensureLoggedIn,
+  ensurePatientId,
   setCredentials,
   setPreferredUnitFromPayload,
   getCredentialStatus,
